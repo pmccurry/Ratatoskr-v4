@@ -19,6 +19,7 @@ from app.portfolio.router import router as portfolio_router
 from app.risk.router import router as risk_router
 from app.signals.router import router as signals_router
 from app.strategies.router import router as strategies_router
+from app.backtesting.router import router as backtesting_router, strategy_backtest_router
 
 logger = logging.getLogger(__name__)
 
@@ -223,6 +224,8 @@ app.include_router(risk_router, prefix="/api/v1")
 app.include_router(paper_trading_router, prefix="/api/v1")
 app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(observability_router, prefix="/api/v1")
+app.include_router(backtesting_router, prefix="/api/v1")
+app.include_router(strategy_backtest_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health")

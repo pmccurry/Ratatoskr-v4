@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-039 complete)
+# Last updated: 2026-03-15 (TASK-040 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -786,6 +786,37 @@
     - all emissions wrapped in try/except
     - correct emoji prefixes per observability spec
     - all emissions include entity_id and entity_type for trace linkage
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-040
+  artifact: backtest engine (backend)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-039
+  acceptance:
+    - migration creates backtest_runs, backtest_trades, backtest_equity_curve tables
+    - POST /strategies/{id}/backtest runs sync and returns results
+    - runner walks bars chronologically and evaluates conditions
+    - indicator warmup loads extra bars before start_date
+    - fill simulation applies slippage and fees
+    - stop loss exit closes when bar crosses SL price
+    - take profit exit closes when bar crosses TP price
+    - signal-based exit closes on opposite signal
+    - time-based exit closes after max_hold_bars
+    - open positions force-closed at end of data
+    - all 4 position sizing types work
+    - performance metrics computed correctly (27 metrics)
+    - equity curve recorded at appropriate intervals
+    - GET /backtests/{id} returns run with metrics
+    - GET /backtests/{id}/trades paginated
+    - GET /backtests/{id}/equity-curve with downsampling
+    - GET /strategies/{id}/backtests list per strategy
+    - strategy config frozen at backtest time
+    - failed backtests store error and status=failed
+    - all financial calculations use Decimal
     - no frontend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15

@@ -89,6 +89,7 @@ Infra: Docker Compose, .env-based config
 - portfolio (positions, PnL, mark-to-market, snapshots, dividends, splits, metrics)
 - observability (structured events, metrics, alerts, notifications, telemetry)
 - common (config, database, errors, shared utilities)
+- backtesting (bar replay engine, fill simulation, position sizing, performance metrics, equity curve)
 - frontend dashboard (10 views, strategy builder UI, component library)
 - shared schemas and contracts
 
@@ -145,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-039 complete — added 35+ audit event emissions across 15 backend files covering strategy evaluation/lifecycle, kill switch, drawdown, paper trading orders, forex pool, shadow tracking, portfolio positions/dividends/splits, and signal deduplication. Audit trail now comprehensive.)
+2026-03-15 (TASK-040 complete — new backtesting module with full bar replay engine, 4 exit types (SL/TP/signal/time), 4 position sizing types, 27 performance metrics, equity curve tracking, 5 REST endpoints. 10 files created, 1 modified. Reuses existing condition engine and indicator library.)

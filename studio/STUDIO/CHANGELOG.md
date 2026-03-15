@@ -358,3 +358,11 @@ Summary: Added 35+ audit event emissions across 15 backend files, completing the
 Files created: 0
 Files modified: 15
 Notes: Passed validation on first attempt. Three minor items: (1) drawdown/daily_loss events lack entity_id (system-wide metrics with no natural entity — entity_id is optional in API), (2) drawdown events fire every check cycle not just on transitions (could be noisy), (3) daily_loss.breach is currently a no-op since daily loss calculation returns zero. Two deferred items: portfolio.cash.adjusted (no central cash manager exists) and drawdown transition detection.
+
+## TASK-040 — Backtest Engine (Backend)
+Date: 2026-03-15
+Status: Complete
+Summary: Built complete backtest engine as new `backtesting` module. Core bar replay runner walks historical OHLCV bars chronologically through existing ConditionEngine and indicator library (no reimplementation). 4 exit types: stop loss, take profit, signal-based (opposite direction closes), time-based (max_hold_bars). 4 position sizing types: fixed units, fixed cash, percent equity, percent risk (with JPY pip handling). Fill simulation with 0.5 pip slippage and 2 bps spread fees. 27 performance metrics including Sharpe ratio, max drawdown, profit factor, win/loss streaks, MFE/MAE. Equity curve sampled every 10 bars for 1m, every bar for higher timeframes, plus on trade events. 5 REST endpoints: POST trigger, GET run details, GET trades (paginated), GET equity curve (downsampled), GET list per strategy. All endpoints authenticated with strategy ownership verification. Strategy config frozen at backtest time for reproducibility. Failed backtests store error message. All financial math uses Decimal. Alembic migration creates 3 tables with CASCADE FKs and composite indexes.
+Files created: 10
+Files modified: 1
+Notes: Passed validation on first attempt. Two minor items: (1) `symbols` type annotation in models.py says `dict` but should be `list` (runtime works fine since JSONB accepts both), (2) linear window growth `bar_dicts[:bar_index+1]` could be slow for 500K+ bar backtests (V1 trade-off). Synchronous execution may risk HTTP timeout for very large backtests.
