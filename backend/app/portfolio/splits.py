@@ -120,6 +120,30 @@ class SplitProcessor:
                 action.symbol, split_type, old_rate, new_rate, len(positions),
             )
 
+            # Emit audit event for split adjustment
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="portfolio.split.adjusted",
+                        category="portfolio",
+                        severity="info",
+                        source_module="portfolio",
+                        summary=f"⚙️ Split adjusted: {action.symbol} {old_rate}:{new_rate} ({len(positions)} positions)",
+                        entity_type="position",
+                        entity_id=positions[0].id if positions else None,
+                        symbol=action.symbol,
+                        details={
+                            "split_type": split_type,
+                            "old_rate": old_rate,
+                            "new_rate": new_rate,
+                            "positions_adjusted": len(positions),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
         if adjustments:
             await db.flush()
 

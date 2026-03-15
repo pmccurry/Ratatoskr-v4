@@ -140,6 +140,32 @@ class OptionsLifecycle:
                 strike, intrinsic, realized_pnl,
             )
 
+            # Emit audit event for option expiration
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="portfolio.option.expired",
+                        category="portfolio",
+                        severity="info",
+                        source_module="portfolio",
+                        summary=f"📂 Option expired: {position.symbol} PnL ${realized_pnl}",
+                        entity_type="position",
+                        entity_id=position.id,
+                        strategy_id=position.strategy_id,
+                        symbol=position.symbol,
+                        details={
+                            "contract_type": position.contract_type,
+                            "strike": str(strike),
+                            "intrinsic": str(intrinsic),
+                            "realized_pnl": str(realized_pnl),
+                            "status": "itm" if intrinsic > 0 else "otm",
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
         if expired_positions:
             await db.flush()
 

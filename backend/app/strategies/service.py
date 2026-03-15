@@ -169,6 +169,25 @@ class StrategyService:
             await _config_repo.create(db, new_config)
             strategy.current_version = new_version
             await _strategy_repo.update(db, strategy)
+
+            # Emit config changed event (new version created for enabled strategy)
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="strategy.config_changed",
+                        category="strategies",
+                        severity="info",
+                        source_module="strategies",
+                        summary=f"⚙️ {strategy.name} config updated",
+                        entity_type="strategy",
+                        entity_id=strategy.id,
+                        strategy_id=strategy.id,
+                        details={"new_version": new_version},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
         else:
             active_config = await _config_repo.get_active(db, strategy_id)
             if active_config:
@@ -219,7 +238,8 @@ class StrategyService:
         self, db: AsyncSession, strategy_id: UUID, user_id: UUID, new_status: str
     ) -> Strategy:
         strategy = await self._get_owned_strategy(db, strategy_id, user_id)
-        allowed = _VALID_TRANSITIONS.get(strategy.status, set())
+        old_status = strategy.status
+        allowed = _VALID_TRANSITIONS.get(old_status, set())
         if new_status not in allowed:
             from app.common.errors import DomainError
             raise DomainError(
@@ -258,6 +278,41 @@ class StrategyService:
         logger.info(
             "Strategy %s status changed to %s", strategy.key, new_status
         )
+
+        # Emit lifecycle event
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                if new_status == "enabled" and old_status == "paused":
+                    event_type = "strategy.resumed"
+                    summary = f"✅ {strategy.name} resumed"
+                elif new_status == "enabled":
+                    event_type = "strategy.enabled"
+                    summary = f"✅ {strategy.name} enabled"
+                elif new_status == "disabled":
+                    event_type = "strategy.disabled"
+                    summary = f"⚙️ {strategy.name} disabled"
+                elif new_status == "paused":
+                    event_type = "strategy.paused"
+                    summary = f"⚙️ {strategy.name} paused"
+                else:
+                    event_type = f"strategy.{new_status}"
+                    summary = f"⚙️ {strategy.name} {new_status}"
+                await emitter.emit(
+                    event_type=event_type,
+                    category="strategies",
+                    severity="info",
+                    source_module="strategies",
+                    summary=summary,
+                    entity_type="strategy",
+                    entity_id=strategy.id,
+                    strategy_id=strategy.id,
+                    details={"old_status": old_status, "new_status": new_status},
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
         return strategy
 
     # --- Versioning ---

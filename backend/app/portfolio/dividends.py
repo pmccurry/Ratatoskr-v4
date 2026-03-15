@@ -117,6 +117,30 @@ class DividendProcessor:
             payment.paid_at = datetime.now(timezone.utc)
             processed.append(payment)
 
+            # Emit audit event for dividend paid
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="portfolio.dividend.paid",
+                        category="portfolio",
+                        severity="info",
+                        source_module="portfolio",
+                        summary=f"💵 Dividend paid: ${payment.net_amount} for {payment.symbol}",
+                        entity_type="position",
+                        entity_id=payment.position_id,
+                        symbol=payment.symbol,
+                        details={
+                            "amount_per_share": str(payment.amount_per_share),
+                            "shares_held": str(payment.shares_held),
+                            "gross_amount": str(payment.gross_amount),
+                            "net_amount": str(payment.net_amount),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
         if processed:
             await db.flush()
             logger.info("Processed %d dividend payments", len(processed))

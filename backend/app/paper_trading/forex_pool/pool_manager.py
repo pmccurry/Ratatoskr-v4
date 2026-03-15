@@ -31,10 +31,30 @@ class ForexPoolManager:
         self._allocation_repo = AccountAllocationRepository()
 
     async def find_available_account(
-        self, db: AsyncSession, symbol: str
+        self, db: AsyncSession, symbol: str, strategy_id: UUID | None = None
     ) -> BrokerAccount | None:
         """Find an account with no active allocation for this pair."""
-        return await self._account_repo.get_available_for_symbol(db, symbol)
+        account = await self._account_repo.get_available_for_symbol(db, symbol)
+        if account is None:
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.forex_pool.blocked",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"🟡 No forex account available: {symbol} ({strategy_id})",
+                        entity_type="forex_allocation",
+                        entity_id=None,
+                        strategy_id=strategy_id,
+                        symbol=symbol,
+                        details={"symbol": symbol, "pool_size": self._pool_size},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+        return account
 
     async def allocate(
         self,
@@ -59,6 +79,28 @@ class ForexPoolManager:
             "Account %s allocated to strategy %s for %s (%s)",
             account_id, strategy_id, symbol, side,
         )
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="paper_trading.forex_pool.allocated",
+                    category="trading",
+                    severity="info",
+                    source_module="paper_trading",
+                    summary=f"📂 Forex account allocated: {symbol} ({strategy_id})",
+                    entity_type="forex_allocation",
+                    entity_id=result.id,
+                    strategy_id=strategy_id,
+                    symbol=symbol,
+                    details={
+                        "account_id": str(account_id),
+                        "side": side,
+                        "allocation_id": str(result.id),
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
         return result
 
     async def release(
@@ -70,6 +112,24 @@ class ForexPoolManager:
             "Account released for strategy %s symbol %s",
             strategy_id, symbol,
         )
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="paper_trading.forex_pool.released",
+                    category="trading",
+                    severity="info",
+                    source_module="paper_trading",
+                    summary=f"📂 Forex account released: {symbol} ({strategy_id})",
+                    entity_type="forex_allocation",
+                    entity_id=None,
+                    strategy_id=strategy_id,
+                    symbol=symbol,
+                    details={"symbol": symbol},
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
 
     async def get_pool_status(self, db: AsyncSession) -> dict:
         """Return current pool status for dashboard."""

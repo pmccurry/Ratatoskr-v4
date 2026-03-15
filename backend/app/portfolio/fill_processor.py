@@ -99,7 +99,34 @@ class FillProcessor:
             contract_multiplier=order.contract_multiplier,
             user_id=user_id,
         )
-        return await _position_repo.create(db, position)
+        position = await _position_repo.create(db, position)
+
+        # Emit audit event for position opened
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="portfolio.position.opened",
+                    category="portfolio",
+                    severity="info",
+                    source_module="portfolio",
+                    summary=f"📂 Position opened: {position.side} {fill.qty} {order.symbol} @ {fill.price}",
+                    entity_type="position",
+                    entity_id=position.id,
+                    strategy_id=order.strategy_id,
+                    symbol=order.symbol,
+                    details={
+                        "side": position.side,
+                        "qty": str(fill.qty),
+                        "price": str(fill.price),
+                        "market": order.market,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
+        return position
 
     async def _process_scale_in(
         self, db: AsyncSession, position: Position, fill: object, order: object
@@ -124,7 +151,33 @@ class FillProcessor:
         # Recalculate unrealized PnL
         self._update_unrealized_pnl(position)
 
-        return await _position_repo.update(db, position)
+        position = await _position_repo.update(db, position)
+
+        # Emit audit event for scale in
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="portfolio.position.scaled_in",
+                    category="portfolio",
+                    severity="info",
+                    source_module="portfolio",
+                    summary=f"📂 Position scaled in: +{fill.qty} {order.symbol}",
+                    entity_type="position",
+                    entity_id=position.id,
+                    strategy_id=order.strategy_id,
+                    symbol=order.symbol,
+                    details={
+                        "added_qty": str(fill.qty),
+                        "new_total_qty": str(position.qty),
+                        "new_avg_entry_price": str(position.avg_entry_price),
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
+        return position
 
     async def _process_scale_out(
         self, db: AsyncSession, position: Position, fill: object, order: object
@@ -176,7 +229,33 @@ class FillProcessor:
         except Exception as e:
             logger.debug("PnL ledger entry skipped (scale-out): %s", e)
 
-        return await _position_repo.update(db, position)
+        position = await _position_repo.update(db, position)
+
+        # Emit audit event for scale out
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="portfolio.position.scaled_out",
+                    category="portfolio",
+                    severity="info",
+                    source_module="portfolio",
+                    summary=f"📂 Position scaled out: -{fill.qty} {order.symbol}, realized ${net_pnl}",
+                    entity_type="position",
+                    entity_id=position.id,
+                    strategy_id=order.strategy_id,
+                    symbol=order.symbol,
+                    details={
+                        "closed_qty": str(fill.qty),
+                        "remaining_qty": str(position.qty),
+                        "realized_pnl": str(net_pnl),
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
+        return position
 
     async def _process_full_exit(
         self, db: AsyncSession, position: Position, fill: object, order: object
@@ -236,7 +315,35 @@ class FillProcessor:
         except Exception as e:
             logger.debug("PnL ledger entry skipped (full exit): %s", e)
 
-        return await _position_repo.update(db, position)
+        position = await _position_repo.update(db, position)
+
+        # Emit audit event for position closed
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="portfolio.position.closed",
+                    category="portfolio",
+                    severity="info",
+                    source_module="portfolio",
+                    summary=f"📂 Position closed: {order.symbol} realized ${net_pnl}",
+                    entity_type="position",
+                    entity_id=position.id,
+                    strategy_id=order.strategy_id,
+                    symbol=order.symbol,
+                    details={
+                        "qty_closed": str(qty_closed),
+                        "entry_price": str(position.avg_entry_price),
+                        "exit_price": str(fill.price),
+                        "realized_pnl": str(net_pnl),
+                        "close_reason": close_reason,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
+        return position
 
     async def _adjust_cash(
         self, db: AsyncSession, user_id: UUID, fill: object, order: object

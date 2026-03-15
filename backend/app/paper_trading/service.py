@@ -95,6 +95,24 @@ class PaperTradingService:
                 db, signal, None, now, "no_risk_decision",
             )
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {signal.symbol} (no_risk_decision)",
+                        entity_type="signal",
+                        entity_id=signal.id,
+                        strategy_id=signal.strategy_id,
+                        symbol=signal.symbol,
+                        details={"reason": "no_risk_decision", "signal_id": str(signal.id)},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
             return order
 
         # Determine order parameters (check for modifications)
@@ -107,6 +125,24 @@ class PaperTradingService:
                 db, signal, risk_decision.id, now, "no_reference_price",
             )
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {signal.symbol} (no_reference_price)",
+                        entity_type="paper_order",
+                        entity_id=order.id,
+                        strategy_id=signal.strategy_id,
+                        symbol=signal.symbol,
+                        details={"reason": "no_reference_price", "signal_id": str(signal.id)},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
             return order
 
         # Determine quantity
@@ -118,6 +154,24 @@ class PaperTradingService:
                 db, signal, risk_decision.id, now, "invalid_quantity",
             )
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {signal.symbol} (invalid_quantity)",
+                        entity_type="paper_order",
+                        entity_id=order.id,
+                        strategy_id=signal.strategy_id,
+                        symbol=signal.symbol,
+                        details={"reason": "invalid_quantity", "signal_id": str(signal.id)},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
             return order
 
         # Determine contract multiplier
@@ -161,9 +215,60 @@ class PaperTradingService:
             )
             order = await self._order_repo.create(db, order)
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {signal.symbol} (insufficient_cash)",
+                        entity_type="paper_order",
+                        entity_id=order.id,
+                        strategy_id=signal.strategy_id,
+                        symbol=signal.symbol,
+                        details={
+                            "reason": "insufficient_cash",
+                            "signal_id": str(signal.id),
+                            "required": str(required_cash),
+                            "available": str(available_cash),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
             return order
 
         order = await self._order_repo.create(db, order)
+
+        # Emit order created event
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="paper_trading.order.created",
+                    category="trading",
+                    severity="info",
+                    source_module="paper_trading",
+                    summary=f"📝 Order: {order.side} {order.requested_qty} {order.symbol} @ {order.order_type}",
+                    entity_type="paper_order",
+                    entity_id=order.id,
+                    strategy_id=order.strategy_id,
+                    symbol=order.symbol,
+                    details={
+                        "signal_id": str(signal.id),
+                        "order_id": str(order.id),
+                        "side": order.side,
+                        "qty": str(order.requested_qty),
+                        "order_type": order.order_type,
+                        "signal_type": order.signal_type,
+                        "market": order.market,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
 
         # Get executor and submit
         executor = await self._get_executor(order.market)
@@ -180,6 +285,28 @@ class PaperTradingService:
             order.rejection_reason = submit_result.rejection_reason
             await self._order_repo.update(db, order)
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {order.symbol} ({submit_result.rejection_reason})",
+                        entity_type="paper_order",
+                        entity_id=order.id,
+                        strategy_id=order.strategy_id,
+                        symbol=order.symbol,
+                        details={
+                            "reason": submit_result.rejection_reason,
+                            "signal_id": str(signal.id),
+                            "order_id": str(order.id),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
 
             # Shadow tracking for contention-blocked forex signals
             if (
@@ -211,6 +338,29 @@ class PaperTradingService:
             order.rejection_reason = f"Fill simulation failed: {e}"
             await self._order_repo.update(db, order)
             await self._update_signal_status(db, signal.id, "order_rejected")
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="paper_trading.order.rejected",
+                        category="trading",
+                        severity="warning",
+                        source_module="paper_trading",
+                        summary=f"❌ Order rejected: {order.symbol} (fill_simulation_failed)",
+                        entity_type="paper_order",
+                        entity_id=order.id,
+                        strategy_id=order.strategy_id,
+                        symbol=order.symbol,
+                        details={
+                            "reason": "fill_simulation_failed",
+                            "signal_id": str(signal.id),
+                            "order_id": str(order.id),
+                            "error": str(e),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
             return order
 
         # Create fill record

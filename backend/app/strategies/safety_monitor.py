@@ -193,6 +193,26 @@ class SafetyMonitor:
                             exit_reason, symbol, strategy.key,
                         )
 
+                        # Emit safety monitor exit event
+                        try:
+                            from app.observability.startup import get_event_emitter
+                            emitter = get_event_emitter()
+                            if emitter:
+                                await emitter.emit(
+                                    event_type="strategy.safety_monitor.exit",
+                                    category="strategies",
+                                    severity="info",
+                                    source_module="strategies",
+                                    summary=f"🛑 Safety monitor exit: {symbol} ({exit_reason})",
+                                    entity_type="strategy",
+                                    entity_id=strategy.id,
+                                    strategy_id=strategy.id,
+                                    symbol=symbol,
+                                    details={"exit_reason": exit_reason, "strategy_key": strategy.key},
+                                )
+                        except Exception:
+                            pass  # Event emission never disrupts trading pipeline
+
                     state.state_json = state_json
                     await _state_repo.update(db, state)
 

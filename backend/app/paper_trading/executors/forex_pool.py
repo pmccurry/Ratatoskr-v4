@@ -53,7 +53,7 @@ class ForexPoolExecutor(Executor):
         if order.signal_type in ("exit", "scale_out"):
             return OrderResult(success=True, status="accepted")
 
-        account = await self._pool.find_available_account(db, order.symbol)
+        account = await self._pool.find_available_account(db, order.symbol, strategy_id=order.strategy_id)
         if account is None:
             return OrderResult(
                 success=False,

@@ -42,6 +42,28 @@ class DailyLossMonitor:
             elif current_loss >= limit * Decimal("0.7"):
                 threshold_status = "warning"
 
+        # Emit audit event on daily loss breach
+        if threshold_status == "breach":
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="risk.daily_loss.breach",
+                        category="risk",
+                        severity="error",
+                        source_module="risk",
+                        summary=f"🟠 Daily loss limit breached: ${current_loss}",
+                        entity_type="daily_loss",
+                        details={
+                            "current_loss": str(current_loss),
+                            "limit": str(limit),
+                            "percent_used": str(percent_used),
+                        },
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
         day_start, day_end = self._get_trading_day_boundaries("equities")
 
         return {

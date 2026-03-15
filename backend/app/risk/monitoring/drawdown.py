@@ -43,6 +43,60 @@ class DrawdownMonitor:
 
         threshold_status = self._get_threshold_status(drawdown_pct, risk_config)
 
+        # Emit audit events for non-normal drawdown thresholds
+        if threshold_status != "normal" and threshold_status != "degraded":
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    if threshold_status == "warning":
+                        await emitter.emit(
+                            event_type="risk.drawdown.warning",
+                            category="risk",
+                            severity="warning",
+                            source_module="risk",
+                            summary=f"🟡 Drawdown at {drawdown_pct:.1f}% (limit: {risk_config.max_drawdown_percent}%)",
+                            entity_type="drawdown",
+                            details={
+                                "drawdown_percent": str(drawdown_pct),
+                                "peak_equity": str(peak),
+                                "current_equity": str(current_equity),
+                                "limit_percent": str(risk_config.max_drawdown_percent),
+                            },
+                        )
+                    elif threshold_status == "breach":
+                        await emitter.emit(
+                            event_type="risk.drawdown.breach",
+                            category="risk",
+                            severity="error",
+                            source_module="risk",
+                            summary=f"🟠 Drawdown breach: {drawdown_pct:.1f}% exceeds {risk_config.max_drawdown_percent}%",
+                            entity_type="drawdown",
+                            details={
+                                "drawdown_percent": str(drawdown_pct),
+                                "peak_equity": str(peak),
+                                "current_equity": str(current_equity),
+                                "limit_percent": str(risk_config.max_drawdown_percent),
+                            },
+                        )
+                    elif threshold_status == "catastrophic":
+                        await emitter.emit(
+                            event_type="risk.drawdown.catastrophic",
+                            category="risk",
+                            severity="critical",
+                            source_module="risk",
+                            summary=f"🔴 Catastrophic drawdown: {drawdown_pct:.1f}% — kill switch activated",
+                            entity_type="drawdown",
+                            details={
+                                "drawdown_percent": str(drawdown_pct),
+                                "peak_equity": str(peak),
+                                "current_equity": str(current_equity),
+                                "catastrophic_percent": str(risk_config.max_drawdown_catastrophic_percent),
+                            },
+                        )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
         return {
             "peak_equity": peak,
             "current_equity": current_equity,

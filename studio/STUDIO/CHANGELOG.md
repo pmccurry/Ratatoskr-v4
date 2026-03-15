@@ -350,3 +350,11 @@ Summary: Fixed two cosmetic/UX issues on the live production site. Fix 1: module
 Files created: 0
 Files modified: 2
 Notes: Passed validation on first attempt. One minor issue: `_is_us_market_hours()` does not account for US market holidays (Christmas, Thanksgiving, etc.) — could fire false alerts on holidays. Bare `except Exception: pass` on WebSocket health check is acceptable (falls through to normal evaluation).
+
+## TASK-039 — Complete Audit Event Emissions
+Date: 2026-03-15
+Status: Complete
+Summary: Added 35+ audit event emissions across 15 backend files, completing the observability event catalog. Strategy module: 5 evaluation events (completed, skipped×2, error, auto_paused) in runner.py + 6 lifecycle events (enabled, disabled, paused, resumed, config_changed) in service.py + 1 safety monitor exit. Risk module: kill switch activated/deactivated with actor/reason/scope, 3 drawdown threshold events (warning/breach/catastrophic), daily loss breach, config changed. Paper trading: order.created + 6 distinct order.rejected points, 3 forex pool events (allocated/released/blocked), 2 shadow tracking events (fill_created/position_closed). Portfolio: 4 position lifecycle events (opened/scaled_in/scaled_out/closed with realized PnL), dividend.paid, split.adjusted, option.expired. Signals: deduplicated at debug severity. All emissions follow TASK-034 pattern (try/except wrapping, post-action timing, emoji prefixes, entity linkage).
+Files created: 0
+Files modified: 15
+Notes: Passed validation on first attempt. Three minor items: (1) drawdown/daily_loss events lack entity_id (system-wide metrics with no natural entity — entity_id is optional in API), (2) drawdown events fire every check cycle not just on transitions (could be noisy), (3) daily_loss.breach is currently a no-op since daily loss calculation returns zero. Two deferred items: portfolio.cash.adjusted (no central cash manager exists) and drawdown transition detection.

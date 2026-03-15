@@ -69,6 +69,30 @@ class SignalService:
                 db, strategy_id, symbol, side, signal_type, source, timeframe, ts
             )
             if is_dup:
+                # Emit audit event for deduplication
+                try:
+                    from app.observability.startup import get_event_emitter
+                    emitter = get_event_emitter()
+                    if emitter:
+                        await emitter.emit(
+                            event_type="signal.deduplicated",
+                            category="signals",
+                            severity="debug",
+                            source_module="signals",
+                            summary=f"📊 Signal deduplicated: {side} {symbol}",
+                            entity_type="signal",
+                            entity_id=existing_id,
+                            strategy_id=strategy_id,
+                            symbol=symbol,
+                            details={
+                                "side": side,
+                                "signal_type": signal_type,
+                                "source": source,
+                                "existing_signal_id": str(existing_id) if existing_id else None,
+                            },
+                        )
+                except Exception:
+                    pass  # Event emission never disrupts trading pipeline
                 return None
 
             expiry_seconds = self._config.get_expiry_duration(timeframe)

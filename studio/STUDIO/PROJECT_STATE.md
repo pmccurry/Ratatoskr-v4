@@ -145,4 +145,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-038a complete — fixed module status dot colors to match running/degraded/unknown statuses, added market hours and subscribed symbols checks to suppress false WebSocket disconnect alerts outside trading hours.)
+2026-03-15 (TASK-039 complete — added 35+ audit event emissions across 15 backend files covering strategy evaluation/lifecycle, kill switch, drawdown, paper trading orders, forex pool, shadow tracking, portfolio positions/dividends/splits, and signal deduplication. Audit trail now comprehensive.)

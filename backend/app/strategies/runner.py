@@ -114,6 +114,25 @@ class StrategyRunner:
 
                 if strategy.auto_pause_error_count >= self._config.auto_pause_error_threshold:
                     await self._handle_auto_pause(db, strategy)
+
+                    # Emit auto-paused event
+                    try:
+                        from app.observability.startup import get_event_emitter
+                        emitter = get_event_emitter()
+                        if emitter:
+                            await emitter.emit(
+                                event_type="strategy.auto_paused",
+                                category="strategies",
+                                severity="error",
+                                source_module="strategies",
+                                summary=f"🟠 {strategy.name} auto-paused: {self._config.auto_pause_error_threshold} errors",
+                                entity_type="strategy",
+                                entity_id=strategy.id,
+                                strategy_id=strategy.id,
+                                details={"error_count": self._config.auto_pause_error_threshold},
+                            )
+                    except Exception:
+                        pass  # Event emission never disrupts trading pipeline
                 else:
                     await _strategy_repo.update(db, strategy)
 
@@ -127,6 +146,24 @@ class StrategyRunner:
                     details_json={"error": str(result)},
                 )
                 await _eval_repo.create(db, eval_record)
+                # Emit evaluation error event
+                try:
+                    from app.observability.startup import get_event_emitter
+                    emitter = get_event_emitter()
+                    if emitter:
+                        await emitter.emit(
+                            event_type="strategy.evaluation.error",
+                            category="strategies",
+                            severity="error",
+                            source_module="strategies",
+                            summary=f"🟠 {strategy.name} evaluation error: {result}",
+                            entity_type="strategy",
+                            entity_id=strategy.id,
+                            strategy_id=strategy.id,
+                            details={"error": str(result)},
+                        )
+                except Exception:
+                    pass  # Event emission never disrupts trading pipeline
             else:
                 evaluated += 1
                 total_signals += result.get("signals_emitted", 0)
@@ -197,6 +234,26 @@ class StrategyRunner:
                 duration_ms=0,
             )
             await _eval_repo.create(db, eval_record)
+
+            # Emit evaluation skipped event
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="strategy.evaluation.skipped",
+                        category="strategies",
+                        severity="info",
+                        source_module="strategies",
+                        summary=f"📊 {strategy.name} skipped: market closed",
+                        entity_type="strategy",
+                        entity_id=strategy.id,
+                        strategy_id=strategy.id,
+                        details={"reason": "market_closed"},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
             return {"status": "skipped", "skip_reason": "market_closed"}
 
         symbols = await self._resolve_symbols(db, config_json)
@@ -210,6 +267,26 @@ class StrategyRunner:
                 duration_ms=0,
             )
             await _eval_repo.create(db, eval_record)
+
+            # Emit evaluation skipped event
+            try:
+                from app.observability.startup import get_event_emitter
+                emitter = get_event_emitter()
+                if emitter:
+                    await emitter.emit(
+                        event_type="strategy.evaluation.skipped",
+                        category="strategies",
+                        severity="info",
+                        source_module="strategies",
+                        summary=f"📊 {strategy.name} skipped: no symbols",
+                        entity_type="strategy",
+                        entity_id=strategy.id,
+                        strategy_id=strategy.id,
+                        details={"reason": "no_symbols"},
+                    )
+            except Exception:
+                pass  # Event emission never disrupts trading pipeline
+
             return {"status": "skipped", "skip_reason": "no_symbols"}
 
         timeframe = config_json.get("timeframe", "1m")
@@ -349,6 +426,32 @@ class StrategyRunner:
             details_json=details,
         )
         await _eval_repo.create(db, eval_record)
+
+        # Emit evaluation completed event
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="strategy.evaluation.completed",
+                    category="strategies",
+                    severity="info",
+                    source_module="strategies",
+                    summary=f"📊 {strategy.name}: {len(symbols)} symbols, {signals_emitted} signals",
+                    entity_type="strategy",
+                    entity_id=strategy.id,
+                    strategy_id=strategy.id,
+                    details={
+                        "symbols_evaluated": len(symbols),
+                        "signals_emitted": signals_emitted,
+                        "exits_triggered": exits_triggered,
+                        "errors": errors,
+                        "duration_ms": duration_ms,
+                        "status": eval_status,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
 
         return {
             "status": eval_status,

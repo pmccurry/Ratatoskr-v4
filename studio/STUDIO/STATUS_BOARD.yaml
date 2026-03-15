@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-038a complete)
+# Last updated: 2026-03-15 (TASK-039 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -763,5 +763,29 @@
     - alert banner does not show WebSocket disconnect outside US market hours
     - alert banner does not show WebSocket disconnect when broker has 0 subscribed symbols
     - no frontend crashes
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-039
+  artifact: complete audit event emissions
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-038a
+  acceptance:
+    - strategy evaluation events emitted (completed, skipped, error)
+    - strategy lifecycle events emitted (enabled, disabled, paused, resumed, config_changed, auto_paused)
+    - kill switch activation/deactivation events emitted with actor and reason
+    - drawdown warning/breach events emitted
+    - paper trading order.created and order.rejected events emitted
+    - forex pool allocated/released/blocked events emitted
+    - shadow tracking fill_created and position_closed events emitted
+    - portfolio position opened/scaled_in/scaled_out/closed events emitted
+    - portfolio dividend.paid and split.adjusted events emitted
+    - signal.deduplicated event emitted at debug severity
+    - all emissions wrapped in try/except
+    - correct emoji prefixes per observability spec
+    - all emissions include entity_id and entity_type for trace linkage
+    - no frontend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15

@@ -405,6 +405,30 @@ class RiskService:
             activated_by,
             reason,
         )
+
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="risk.kill_switch.activated",
+                    category="risk",
+                    severity="critical",
+                    source_module="risk",
+                    summary=f"🛑 Kill switch activated: {scope} by {activated_by}: {reason}",
+                    entity_type="kill_switch",
+                    entity_id=result.id,
+                    strategy_id=strategy_id,
+                    details={
+                        "scope": scope,
+                        "activated_by": activated_by,
+                        "reason": reason,
+                        "strategy_id": str(strategy_id) if strategy_id else None,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
         return result
 
     async def deactivate_kill_switch(
@@ -427,6 +451,28 @@ class RiskService:
         existing.deactivated_at = now
         await db.flush()
         logger.info("Kill switch deactivated: scope=%s", scope)
+
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="risk.kill_switch.deactivated",
+                    category="risk",
+                    severity="info",
+                    source_module="risk",
+                    summary=f"✅ Kill switch deactivated: {scope} by system",
+                    entity_type="kill_switch",
+                    entity_id=existing.id,
+                    strategy_id=strategy_id,
+                    details={
+                        "scope": scope,
+                        "strategy_id": str(strategy_id) if strategy_id else None,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
         return existing
 
     async def get_kill_switch_status(self, db: AsyncSession) -> dict:
@@ -483,6 +529,27 @@ class RiskService:
         config.updated_by = changed_by
         await db.flush()
         logger.info("Risk config updated by %s", changed_by)
+
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="risk.config.changed",
+                    category="risk",
+                    severity="info",
+                    source_module="risk",
+                    summary="⚙️ Risk config updated",
+                    entity_type="risk_config",
+                    entity_id=config.id,
+                    details={
+                        "changed_by": changed_by,
+                        "fields_updated": list(updates.keys()),
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
         return config
 
     async def get_config_audit(

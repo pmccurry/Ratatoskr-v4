@@ -138,6 +138,30 @@ class ShadowTracker:
             signal.side, signal.symbol, fill_result.qty, fill_result.price, position.id,
         )
 
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="paper_trading.shadow.fill_created",
+                    category="trading",
+                    severity="info",
+                    source_module="paper_trading",
+                    summary=f"👻 Shadow fill: {signal.side} {signal.symbol} ({signal.strategy_id})",
+                    entity_type="shadow_fill",
+                    entity_id=shadow_fill.id,
+                    strategy_id=signal.strategy_id,
+                    symbol=signal.symbol,
+                    details={
+                        "position_id": str(position.id),
+                        "qty": str(fill_result.qty),
+                        "price": str(fill_result.price),
+                        "side": signal.side,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
+
         return position
 
     async def close_shadow_position(
@@ -197,6 +221,30 @@ class ShadowTracker:
             "Shadow position closed: %s %s pnl=%s reason=%s",
             position.symbol, position.side, net_pnl, close_reason,
         )
+
+        try:
+            from app.observability.startup import get_event_emitter
+            emitter = get_event_emitter()
+            if emitter:
+                await emitter.emit(
+                    event_type="paper_trading.shadow.position_closed",
+                    category="trading",
+                    severity="info",
+                    source_module="paper_trading",
+                    summary=f"👻 Shadow position closed: {position.symbol} PnL ${net_pnl}",
+                    entity_type="shadow_position",
+                    entity_id=position.id,
+                    strategy_id=position.strategy_id,
+                    symbol=position.symbol,
+                    details={
+                        "pnl": str(net_pnl),
+                        "close_reason": close_reason,
+                        "exit_price": str(exit_price),
+                        "side": position.side,
+                    },
+                )
+        except Exception:
+            pass  # Event emission never disrupts trading pipeline
 
         return position
 
