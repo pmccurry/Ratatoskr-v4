@@ -54,6 +54,7 @@ function pathToTab(pathname: string): string {
   if (pathname.startsWith('/settings/accounts')) return 'accounts';
   if (pathname.startsWith('/settings/users')) return 'users';
   if (pathname.startsWith('/settings/alerts')) return 'alerts';
+  if (pathname.startsWith('/settings/system')) return 'system';
   return 'risk';
 }
 

@@ -21,6 +21,7 @@ You write code, create files, and build features from task packets and specs.
 ## Before Every Task
 
 ### Step 1 — Check Task Status
+Pull from the git repo https://github.com/pmccurry/Ratatoskr-v4.git
 Read /studio/STUDIO/STATUS_BOARD.yaml
 Find the task you've been asked to execute.
 If its status is "blocked" — STOP. Tell the user which dependencies are unmet.

@@ -62,8 +62,8 @@ class ObservabilityService:
 
         # Check each module's availability
         module_checks = [
-            ("market_data", "app.market_data.startup", "get_market_data_service"),
-            ("strategies", "app.strategies.startup", "get_strategy_service"),
+            ("market_data", "app.market_data.startup", "get_ws_manager"),
+            ("strategies", "app.strategies.startup", "get_runner"),
             ("signals", "app.signals.startup", "get_signal_service"),
             ("risk", "app.risk.startup", "get_risk_service"),
             ("paper_trading", "app.paper_trading.startup", "get_paper_trading_service"),

@@ -257,3 +257,140 @@ async def update_alert_rule(
     return {
         "data": AlertRuleResponse.model_validate(rule).model_dump(by_alias=True)
     }
+
+
+# --- Background Jobs ---
+
+
+@router.get("/jobs", response_model=dict)
+async def get_background_jobs(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get status of background tasks and backfill jobs."""
+    from datetime import datetime as dt, timezone
+
+    jobs = []
+
+    # Check background task runners
+    task_checks = [
+        ("strategy_runner", "app.strategies.startup", "get_runner"),
+        ("safety_monitor", "app.strategies.startup", "get_safety_monitor"),
+        ("signal_expiry", "app.signals.startup", "get_signal_service"),
+        ("risk_evaluator", "app.risk.startup", "get_risk_service"),
+        ("paper_trading_consumer", "app.paper_trading.startup", "get_paper_trading_service"),
+        ("portfolio_mtm", "app.portfolio.startup", "get_portfolio_service"),
+        ("event_writer", "app.observability.startup", "get_event_emitter"),
+    ]
+
+    for name, module_path, getter_name in task_checks:
+        try:
+            import importlib
+            mod = importlib.import_module(module_path)
+            getter = getattr(mod, getter_name, None)
+            service = getter() if getter else None
+            jobs.append({
+                "name": name,
+                "status": "running" if service else "stopped",
+                "lastRun": None,
+                "nextRun": None,
+                "durationMs": None,
+            })
+        except Exception:
+            jobs.append({
+                "name": name,
+                "status": "error",
+                "lastRun": None,
+                "nextRun": None,
+                "durationMs": None,
+            })
+
+    # Backfill job summary from backfill_jobs table
+    try:
+        from sqlalchemy import func, select, text
+        from app.market_data.models import BackfillJob
+
+        completed = (await db.execute(
+            select(func.count()).select_from(BackfillJob).where(BackfillJob.status == "completed")
+        )).scalar_one()
+        failed = (await db.execute(
+            select(func.count()).select_from(BackfillJob).where(BackfillJob.status == "failed")
+        )).scalar_one()
+        running = (await db.execute(
+            select(func.count()).select_from(BackfillJob).where(BackfillJob.status == "running")
+        )).scalar_one()
+        total = (await db.execute(
+            select(func.count()).select_from(BackfillJob)
+        )).scalar_one()
+
+        backfill_status = "running" if running > 0 else ("completed" if total > 0 else "scheduled")
+        jobs.append({
+            "name": "historical_backfill",
+            "status": backfill_status,
+            "lastRun": None,
+            "nextRun": None,
+            "durationMs": None,
+            "progress": {
+                "completed": completed,
+                "failed": failed,
+                "running": running,
+                "total": total,
+            },
+        })
+    except Exception:
+        jobs.append({
+            "name": "historical_backfill",
+            "status": "unknown",
+            "lastRun": None,
+            "nextRun": None,
+            "durationMs": None,
+        })
+
+    return {"data": jobs}
+
+
+# --- Database Stats ---
+
+
+@router.get("/database/stats", response_model=dict)
+async def get_database_stats(
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """Get database table statistics and connection pool info."""
+    from sqlalchemy import text
+
+    tables = []
+    try:
+        result = await db.execute(text("""
+            SELECT
+                relname AS table_name,
+                n_live_tup AS row_count,
+                pg_total_relation_size(relid) AS size_bytes
+            FROM pg_stat_user_tables
+            ORDER BY pg_total_relation_size(relid) DESC
+        """))
+        for row in result.mappings():
+            size_bytes = row["size_bytes"] or 0
+            if size_bytes > 1_048_576:
+                est_size = f"{size_bytes / 1_048_576:.1f} MB"
+            elif size_bytes > 1024:
+                est_size = f"{size_bytes / 1024:.1f} KB"
+            else:
+                est_size = f"{size_bytes} B"
+            tables.append({
+                "tableName": row["table_name"],
+                "rowCount": row["row_count"] or 0,
+                "estimatedSize": est_size,
+            })
+    except Exception:
+        pass
+
+    total_size = 0
+    try:
+        result = await db.execute(text("SELECT pg_database_size(current_database())"))
+        total_size = result.scalar_one() or 0
+    except Exception:
+        pass
+
+    return {"data": tables}

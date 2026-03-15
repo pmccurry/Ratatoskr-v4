@@ -147,12 +147,42 @@ async def get_summary(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    """Get portfolio summary."""
+    """Get portfolio summary. Returns initial cash when no portfolio data exists."""
+    from app.common.config import get_settings
+    settings = get_settings()
+    initial_cash = float(settings.paper_trading_initial_cash)
+
     service = get_portfolio_service()
     if not service:
-        return {"data": {}}
+        return {"data": {
+            "equity": initial_cash,
+            "cash": initial_cash,
+            "positionsValue": 0,
+            "unrealizedPnl": 0,
+            "realizedPnlTotal": 0,
+            "totalReturn": 0,
+            "totalReturnPercent": 0,
+            "drawdownPercent": 0,
+            "peakEquity": initial_cash,
+            "openPositionsCount": 0,
+        }}
 
     summary = await service.get_summary(db, user.id)
+
+    # Fallback to initial cash when no data exists
+    if not summary or summary.get("equity") is None:
+        summary = summary or {}
+        summary.setdefault("equity", initial_cash)
+        summary.setdefault("cash", initial_cash)
+        summary.setdefault("positions_value", 0)
+        summary.setdefault("unrealized_pnl", 0)
+        summary.setdefault("realized_pnl_total", 0)
+        summary.setdefault("total_return", 0)
+        summary.setdefault("total_return_percent", 0)
+        summary.setdefault("drawdown_percent", 0)
+        summary.setdefault("peak_equity", initial_cash)
+        summary.setdefault("open_positions_count", 0)
+
     return {
         "data": PortfolioSummaryResponse(**summary).model_dump(by_alias=True)
     }

@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-037 complete)
+# Last updated: 2026-03-15 (TASK-038 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -724,5 +724,28 @@
     - all services have restart unless-stopped
     - README has deployment section
     - no application logic modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-038
+  artifact: live site bug fixes (health, status bar, missing endpoints, dashboard)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-037
+  acceptance:
+    - market_data reports Running in System Health
+    - strategies reports Running in System Health
+    - GET /api/v1/observability/jobs returns 200
+    - Jobs tab renders
+    - GET /api/v1/observability/database/stats returns 200
+    - Database tab renders
+    - Settings system tab loads without 404
+    - status bar shows Connected when OANDA streaming
+    - status bar shows No symbols for Alpaca after hours
+    - WebSocket alert suppressed outside market hours (partial, deferred)
+    - dashboard shows initial cash when no trades exist
+    - backfill progress visible in Jobs tab
+    - no frontend crashes or blank screens
     - nothing inside /studio modified
   completed_at: 2026-03-15

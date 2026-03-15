@@ -61,6 +61,7 @@ export function AppRouter() {
             <Route path="/settings/accounts" element={<SettingsPage />} />
             <Route path="/settings/users" element={<SettingsPage />} />
             <Route path="/settings/alerts" element={<SettingsPage />} />
+            <Route path="/settings/system" element={<SettingsPage />} />
           </Route>
         </Route>
 

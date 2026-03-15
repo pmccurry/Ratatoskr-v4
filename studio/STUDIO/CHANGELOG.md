@@ -334,3 +334,11 @@ Summary: Created complete VPS deployment infrastructure for DigitalOcean. 7 file
 Files created: 7
 Files modified: 3
 Notes: Passed validation on first attempt. Three minor issues: README uses generic placeholders instead of real IP/domain (better for maintainability), deploy.sh seed uses inline Python import (fragile but functional), update.sh uses sleep 10 instead of health check loop. Risks: Let's Encrypt rate limits during failed bootstraps, database password in DATABASE_URL env var, single point of failure (mitigated by restart: unless-stopped).
+
+## TASK-038 — Live Site Bug Fixes (Health, Status Bar, Missing Endpoints, Dashboard)
+Date: 2026-03-15
+Status: Complete
+Summary: Fixed 8 bugs discovered on the live production site. BF-1: module health checks now use correct getter names (`get_ws_manager` for market_data, `get_runner` for strategies) instead of non-existent functions. BF-2: added `GET /observability/jobs` endpoint aggregating 7 background task runner statuses via dynamic import + getter pattern, plus backfill progress from `backfill_jobs` table. BF-3: added `GET /observability/database/stats` endpoint querying `pg_stat_user_tables` for row counts and `pg_total_relation_size()` for table sizes. BF-4: wired `/settings/system` route and `pathToTab()` handler. BF-5: status bar now reads per-broker status from `/health` endpoint with nuanced labels (Connected/Not configured/No symbols/Disconnected). BF-6: WebSocket alert false positive partially addressed (status bar fixed, full alert rule suppression deferred). BF-7: portfolio summary returns `PAPER_TRADING_INITIAL_CASH` ($100k) as equity/cash when no portfolio data exists. BF-8: backfill progress (completed/failed/running/total) included in jobs endpoint.
+Files created: 0
+Files modified: 6
+Notes: Passed validation on first attempt. Three minor issues: BF-6 alert rule suppression deferred (requires alert evaluator market-hours awareness), database stats computes total_size but doesn't return it, portfolio summary uses float() for initial cash instead of Decimal (read-only display, acceptable).

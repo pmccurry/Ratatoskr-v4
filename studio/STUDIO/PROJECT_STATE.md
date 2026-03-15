@@ -145,4 +145,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-037 complete — VPS deployment infrastructure: server-setup.sh, docker-compose.prod.yml with 5 services (db, backend, frontend, nginx, certbot), SSL via Let's Encrypt with auto-renewal, deploy.sh with SSL bootstrap flow, update.sh, .env.production.example, nginx security headers, README deployment section. Target: production.ratatoskr.trade on DigitalOcean.)
+2026-03-15 (TASK-038 complete — live site bug fixes: fixed module health checks for market_data/strategies, added /observability/jobs and /database/stats endpoints, fixed status bar broker display with nuanced labels, added Settings system tab route, portfolio summary returns initial cash when empty, backfill progress in Jobs tab. BF-6 alert suppression deferred.)

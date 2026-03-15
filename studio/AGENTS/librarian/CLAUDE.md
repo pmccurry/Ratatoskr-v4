@@ -55,6 +55,9 @@ Do NOT rewrite entire files unnecessarily.
 Create LIBRARIAN_REPORT.md in the task directory:
 /studio/TASKS/TASK-{ID}-{name}/LIBRARIAN_REPORT.md
 
+### Step 6 — Push to GitHub
+Push all changes to GitHub. https://github.com/pmccurry/Ratatoskr-v4.git
+
 ## Update Checklist
 
 @studio/AGENTS/librarian/UPDATE_TEMPLATE.md

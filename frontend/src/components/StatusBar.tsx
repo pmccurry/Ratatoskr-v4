@@ -16,6 +16,15 @@ export function StatusBar({ sidebarWidth }: StatusBarProps) {
   }, []);
 
   const { data: health } = useQuery({
+    queryKey: ['health-status'],
+    queryFn: async () => {
+      const res = await api.get('/health');
+      return res.data;
+    },
+    refetchInterval: REFRESH.statusBar,
+  });
+
+  const { data: pipeline } = useQuery({
     queryKey: ['pipeline-status'],
     queryFn: async () => {
       const res = await api.get('/observability/health/pipeline');
@@ -34,13 +43,28 @@ export function StatusBar({ sidebarWidth }: StatusBarProps) {
     }) + ' ET';
   };
 
-  const dot = (status: string) => (
-    <span className={`inline-block w-2 h-2 rounded-full ${status === 'running' ? 'bg-success' : 'bg-error'}`} />
-  );
+  const brokerLabel = (status: string | undefined): string => {
+    if (!status) return 'Unknown';
+    if (status === 'connected') return 'Connected';
+    if (status === 'unconfigured') return 'Not configured';
+    if (status === 'not_started') return 'No symbols';
+    return 'Disconnected';
+  };
 
-  const alpacaStatus = health?.marketData?.status || 'unknown';
-  const oandaStatus = health?.marketData?.status || 'unknown';
-  const strategiesStatus = health?.strategies?.status || 'unknown';
+  const brokerColor = (status: string | undefined): string => {
+    if (status === 'connected') return 'bg-success';
+    if (status === 'unconfigured' || status === 'not_started') return 'bg-warning';
+    return 'bg-error';
+  };
+
+  const alpacaStatus = health?.brokers?.alpaca?.status;
+  const oandaStatus = health?.brokers?.oanda?.status;
+
+  // Pipeline status for strategies (snake_case keys from backend)
+  const pipelineData = pipeline?.data ?? pipeline;
+  const strategiesStatus = pipelineData?.strategies?.status
+    || pipelineData?.market_data?.status
+    || 'unknown';
 
   return (
     <div
@@ -48,12 +72,12 @@ export function StatusBar({ sidebarWidth }: StatusBarProps) {
       style={{ left: sidebarWidth }}
     >
       <div className="flex items-center gap-1.5">
-        {dot(alpacaStatus)}
-        <span>Alpaca {alpacaStatus === 'running' ? 'Connected' : 'Disconnected'}</span>
+        <span className={`inline-block w-2 h-2 rounded-full ${brokerColor(alpacaStatus)}`} />
+        <span>Alpaca {brokerLabel(alpacaStatus)}</span>
       </div>
       <div className="flex items-center gap-1.5">
-        {dot(oandaStatus)}
-        <span>OANDA {oandaStatus === 'running' ? 'Connected' : 'Disconnected'}</span>
+        <span className={`inline-block w-2 h-2 rounded-full ${brokerColor(oandaStatus)}`} />
+        <span>OANDA {brokerLabel(oandaStatus)}</span>
       </div>
       <span className="text-border">|</span>
       <span>
