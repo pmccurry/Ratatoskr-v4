@@ -95,7 +95,8 @@ export function BacktestResultsList({ strategyId }: BacktestResultsListProps) {
       render: (row: BacktestRow) => {
         const sr = row.metrics?.sharpeRatio ?? row.metrics?.sharpe_ratio ?? null;
         if (sr == null) return <span className="text-text-tertiary">--</span>;
-        return <span className="font-mono">{Number(sr).toFixed(2)}</span>;
+        const num = Number(sr);
+        return <span className="font-mono">{isFinite(num) ? num.toFixed(2) : '—'}</span>;
       },
     },
     {

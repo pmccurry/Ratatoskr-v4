@@ -323,8 +323,8 @@ export default function StrategyDetail() {
                 <CardGrid>
                   <StatCard label="Total PnL" value={metrics ? formatPnl(metrics.totalPnl) : '—'} trend={metrics ? (metrics.totalPnl >= 0 ? 'up' : 'down') : undefined} />
                   <StatCard label="Win Rate" value={metrics ? formatPercent(metrics.winRate) : '—'} />
-                  <StatCard label="Total Trades" value={metrics ? metrics.totalTrades.toLocaleString() : '—'} />
-                  <StatCard label="Profit Factor" value={metrics ? metrics.profitFactor.toFixed(2) : '—'} />
+                  <StatCard label="Total Trades" value={metrics ? (metrics.totalTrades ?? 0).toLocaleString() : '—'} />
+                  <StatCard label="Profit Factor" value={metrics && metrics.profitFactor != null && isFinite(metrics.profitFactor) ? metrics.profitFactor.toFixed(2) : '—'} />
                 </CardGrid>
 
                 <ChartContainer title="Strategy Equity Curve" loading={!equityData} empty={!equityData?.length}>
@@ -351,10 +351,10 @@ export default function StrategyDetail() {
                       {[
                         { label: 'Avg Winner', value: formatCurrency(metrics.avgWinner) },
                         { label: 'Avg Loser', value: formatCurrency(metrics.avgLoser) },
-                        { label: 'Risk/Reward', value: metrics.riskReward.toFixed(2) },
-                        { label: 'Max Drawdown', value: formatPercent(metrics.maxDrawdown) },
-                        { label: 'Sharpe Ratio', value: metrics.sharpeRatio.toFixed(2) },
-                        { label: 'Avg Hold Time', value: `${metrics.avgHoldBars} bars` },
+                        { label: 'Risk/Reward', value: metrics.riskReward != null ? metrics.riskReward.toFixed(2) : '—' },
+                        { label: 'Max Drawdown', value: formatPercent(metrics.maxDrawdown ?? 0) },
+                        { label: 'Sharpe Ratio', value: metrics.sharpeRatio != null ? metrics.sharpeRatio.toFixed(2) : '—' },
+                        { label: 'Avg Hold Time', value: `${metrics.avgHoldBars ?? 0} bars` },
                         { label: 'Dividend Income', value: formatCurrency(metrics.dividendIncome) },
                       ].map((m) => (
                         <div key={m.label}>

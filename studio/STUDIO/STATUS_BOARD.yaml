@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-041b complete)
+# Last updated: 2026-03-15 (TASK-041c complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -878,5 +878,20 @@
     - backtest runner reads config regardless of key format
     - all config key access points normalized
     - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-041c
+  artifact: fix strategy detail page crash (profitFactor null guard)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-041b
+  acceptance:
+    - strategy detail page loads without crash when no backtests exist
+    - strategy detail page loads when backtests have Infinity profit factor
+    - backtest tab is visible and accessible
+    - all .toFixed() calls on metrics have null/Infinity guards
+    - no backend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15

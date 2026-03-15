@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-041b complete — added recursive camelCase-to-snake_case normalizer for strategy config keys. Applied at 4 entry points: validation, runner, safety monitor, backtest runner. Idempotent and backward compatible.)
+2026-03-15 (TASK-041c complete — fixed strategy detail page crash from null/Infinity metrics values. Added null guards and isFinite checks on all .toFixed() calls in StrategyDetail.tsx and BacktestResultsList.tsx.)

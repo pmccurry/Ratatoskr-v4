@@ -390,3 +390,11 @@ Summary: Fixed 400 error when saving strategies — frontend sends camelCase con
 Files created: 0
 Files modified: 4
 Notes: Passed validation on first attempt. Normalizer recursively converts all nested dict keys (handles nested camelCase like stopLoss.type). List items left unchanged.
+
+## TASK-041c — Fix Strategy Detail Page Crash (profitFactor null guard)
+Date: 2026-03-15
+Status: Complete
+Summary: Fixed crash on strategy detail page when metrics contain null or Infinity values. Added null guards (`!= null`, `?? 0`) and `isFinite()` checks on all `.toFixed()` calls in StrategyDetail.tsx (profitFactor, totalTrades, riskReward, sharpeRatio, avgHoldBars, maxDrawdown) and BacktestResultsList.tsx (sharpe ratio). When metrics are null/undefined, stat cards show `'—'` dash. Infinity profit factor displays `∞` symbol.
+Files created: 0
+Files modified: 2
+Notes: Passed validation on first attempt. Minor note: sharpeRatio null check doesn't explicitly guard against Infinity, but backend returns null rather than Infinity for zero-std edge case.
