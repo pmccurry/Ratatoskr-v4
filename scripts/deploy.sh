@@ -9,50 +9,48 @@ fi
 set -a; source .env; set +a
 
 DOMAIN="${DOMAIN:?Set DOMAIN in .env}"
-CERTBOT_EMAIL="${CERTBOT_EMAIL:?Set CERTBOT_EMAIL in .env}"
 
 echo "=========================================="
 echo "  Ratatoskr Deployment"
 echo "  Domain: $DOMAIN"
 echo "=========================================="
 
-# === Step 1: Generate nginx config from template ===
-echo "Generating nginx config..."
-mkdir -p nginx
-envsubst '${DOMAIN}' < nginx/prod.conf.template > nginx/prod.conf
+# === Step 1: Build images ===
+echo "Building images..."
+docker compose -f docker-compose.prod.yml build
 
-# === Step 2: Initial SSL certificate (first time only) ===
-if [ ! -f ".certbot_initialized" ]; then
-    echo "Bootstrapping SSL certificate..."
+# === Step 2: Start database and wait for healthy ===
+echo "Starting database..."
+docker compose -f docker-compose.prod.yml up -d db
+echo "Waiting for database..."
+for i in $(seq 1 30); do
+    if docker compose -f docker-compose.prod.yml exec -T db pg_isready -U "${POSTGRES_USER:-postgres}" 2>/dev/null; then
+        echo "Database ready!"
+        break
+    fi
+    echo "  Waiting... ($i/30)"
+    sleep 2
+done
 
-    # Use HTTP-only config for ACME challenge
-    cp nginx/init.conf nginx/prod.conf
+# === Step 3: Run migrations (before backend starts) ===
+echo "Running migrations..."
+docker compose -f docker-compose.prod.yml run --rm -T backend \
+    python -m alembic upgrade head
 
-    # Start only nginx and certbot prerequisites
-    docker compose -f docker-compose.prod.yml up -d db
-    docker compose -f docker-compose.prod.yml up -d nginx
+# === Step 4: Seed admin user ===
+echo "Seeding admin user..."
+docker compose -f docker-compose.prod.yml run --rm -T backend \
+    python -c "
+import asyncio
+from app.auth.seed import seed_admin_user
+asyncio.run(seed_admin_user())
+" 2>/dev/null || echo "Admin seed skipped (may already exist)"
 
-    echo "Waiting for nginx to start..."
-    sleep 5
+# === Step 5: Start all services ===
+echo "Starting all services..."
+docker compose -f docker-compose.prod.yml up -d
 
-    # Request certificate
-    docker compose -f docker-compose.prod.yml run --rm certbot \
-        certonly --webroot --webroot-path=/var/www/certbot \
-        --email "$CERTBOT_EMAIL" --agree-tos --no-eff-email \
-        -d "$DOMAIN"
-
-    # Restore full SSL config
-    envsubst '${DOMAIN}' < nginx/prod.conf.template > nginx/prod.conf
-
-    touch .certbot_initialized
-    echo "SSL certificate obtained!"
-fi
-
-# === Step 3: Build and start all services ===
-echo "Building and starting services..."
-docker compose -f docker-compose.prod.yml up -d --build
-
-# === Step 4: Wait for backend health ===
+# === Step 6: Wait for backend health ===
 echo "Waiting for backend..."
 for i in $(seq 1 30); do
     if docker compose -f docker-compose.prod.yml exec -T backend \
@@ -63,22 +61,6 @@ for i in $(seq 1 30); do
     echo "  Waiting... ($i/30)"
     sleep 2
 done
-
-# === Step 5: Run migrations ===
-echo "Running migrations..."
-docker compose -f docker-compose.prod.yml exec -T backend \
-    sh -c "cd /app/backend && python -m alembic upgrade head" || echo "Migration warning (may already be current)"
-
-# === Step 6: Seed admin user ===
-echo "Seeding admin user..."
-docker compose -f docker-compose.prod.yml exec -T backend \
-    python -c "
-import asyncio, sys, os
-sys.path.insert(0, '/app/backend')
-os.chdir('/app/backend')
-from app.auth.seed import seed_admin_user
-asyncio.run(seed_admin_user())
-" 2>/dev/null || echo "Admin seed skipped (may already exist)"
 
 echo ""
 echo "=========================================="
