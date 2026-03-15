@@ -97,8 +97,13 @@ class StrategyValidator:
                 "severity": "error",
             })
         else:
-            mode = symbols.get("mode")
-            if mode == "explicit" and not symbols.get("list"):
+            if isinstance(symbols, list):
+                symbol_list = symbols
+                mode = "specific"
+            else:
+                mode = symbols.get("mode", "specific")
+                symbol_list = symbols.get("list") or symbols.get("symbols", [])
+            if mode in ("explicit", "specific") and not symbol_list:
                 errors.append({
                     "field": "symbols.list",
                     "message": "At least one symbol required when mode is 'explicit'",
