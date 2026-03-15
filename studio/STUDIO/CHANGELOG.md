@@ -374,3 +374,11 @@ Summary: Built complete backtest frontend UI with 7 new files in `features/backt
 Files created: 7
 Files modified: 2
 Notes: Required re-validation after initial review found 3 issues (trade table not rendered, columns not sortable, no summary row). All 3 fixed and verified. Minor items: equity curve uses sample=300 instead of 200 (acceptable), symbol input uses comma-separated text instead of multi-select (documented), exit reason key mapping should be verified at runtime against backend values.
+
+## TASK-041a — Fix Strategy Validation Symbols Format
+Date: 2026-03-15
+Status: Complete
+Summary: Fixed 500 error when saving a strategy where `config.symbols` is a plain list (`["EUR_USD"]`) instead of a dict (`{"mode": "specific", "symbols": ["EUR_USD"]}`). Added `isinstance(symbols, list)` guards in `validation.py` (`_validate_completeness` and `_validate_symbols`) and `runner.py` (`_resolve_symbols`). List format treated as implicit "specific" mode. Dict format paths completely unchanged for backward compatibility.
+Files created: 0
+Files modified: 2
+Notes: Passed validation on first attempt. Conservative fix — early returns for list format, no changes to existing dict logic.

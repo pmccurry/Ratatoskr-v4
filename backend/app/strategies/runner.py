@@ -464,6 +464,11 @@ class StrategyRunner:
 
     async def _resolve_symbols(self, db: AsyncSession, config: dict) -> list[str]:
         symbols_config = config.get("symbols", {})
+
+        # Handle list format (frontend sends plain list)
+        if isinstance(symbols_config, list):
+            return symbols_config
+
         mode = symbols_config.get("mode", "explicit")
 
         if mode == "explicit":

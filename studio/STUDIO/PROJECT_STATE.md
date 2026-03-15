@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-041 complete — backtest UI: trigger form on strategy detail page, results list, detail view with 6 metric cards, equity curve chart with drawdown overlay, paginated/sortable trade table. 7 files created, 2 modified.)
+2026-03-15 (TASK-041a complete — fixed strategy validation crash when symbols config is a list instead of dict. Added list guards in validation.py and runner.py. Backward compatible with dict format.)

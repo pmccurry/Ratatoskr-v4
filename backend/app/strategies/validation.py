@@ -294,6 +294,10 @@ class StrategyValidator:
         if not symbols:
             return
 
+        # Handle list format (frontend sends plain list)
+        if isinstance(symbols, list):
+            return  # list format is valid, no mode/filter validation needed
+
         mode = symbols.get("mode")
         if mode not in _VALID_SYMBOL_MODES:
             errors.append({

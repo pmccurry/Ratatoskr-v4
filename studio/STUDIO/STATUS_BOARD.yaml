@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-041 complete)
+# Last updated: 2026-03-15 (TASK-041a complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -846,5 +846,20 @@
     - exit reason shown for each trade
     - route /backtests/:id works
     - no backend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-041a
+  artifact: fix strategy validation symbols format
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-041
+  acceptance:
+    - saving a strategy with symbols as a list does not return 500
+    - saving a strategy with symbols as a dict still works
+    - validate and enable buttons work after save
+    - no other files assume symbols is a dict
+    - no frontend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15
