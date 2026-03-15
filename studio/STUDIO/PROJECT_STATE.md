@@ -145,4 +145,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-038 complete — live site bug fixes: fixed module health checks for market_data/strategies, added /observability/jobs and /database/stats endpoints, fixed status bar broker display with nuanced labels, added Settings system tab route, portfolio summary returns initial cash when empty, backfill progress in Jobs tab. BF-6 alert suppression deferred.)
+2026-03-15 (TASK-038a complete — fixed module status dot colors to match running/degraded/unknown statuses, added market hours and subscribed symbols checks to suppress false WebSocket disconnect alerts outside trading hours.)

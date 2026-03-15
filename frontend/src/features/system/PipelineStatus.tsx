@@ -69,9 +69,9 @@ export function PipelineStatus() {
         <div className="grid grid-cols-2 gap-2">
           {moduleEntries.map(([name, mod]) => {
             const dotColor =
-              mod.status === 'healthy'
+              ['healthy', 'ok', 'running'].includes(mod.status)
                 ? COLORS.success
-                : mod.status === 'degraded'
+                : ['degraded', 'unknown', 'warning'].includes(mod.status)
                   ? COLORS.warning
                   : COLORS.error;
             return (

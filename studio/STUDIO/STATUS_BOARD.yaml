@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-038 complete)
+# Last updated: 2026-03-15 (TASK-038a complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -747,5 +747,21 @@
     - dashboard shows initial cash when no trades exist
     - backfill progress visible in Jobs tab
     - no frontend crashes or blank screens
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-038a
+  artifact: fix module status dot colors and alert banner false positive
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-038
+  acceptance:
+    - module dots show green when status is running
+    - module dots show yellow when status is unknown or degraded
+    - module dots show red only for error or stopped
+    - alert banner does not show WebSocket disconnect outside US market hours
+    - alert banner does not show WebSocket disconnect when broker has 0 subscribed symbols
+    - no frontend crashes
     - nothing inside /studio modified
   completed_at: 2026-03-15

@@ -342,3 +342,11 @@ Summary: Fixed 8 bugs discovered on the live production site. BF-1: module healt
 Files created: 0
 Files modified: 6
 Notes: Passed validation on first attempt. Three minor issues: BF-6 alert rule suppression deferred (requires alert evaluator market-hours awareness), database stats computes total_size but doesn't return it, portfolio summary uses float() for initial cash instead of Decimal (read-only display, acceptable).
+
+## TASK-038a — Fix Module Status Dot Colors & Alert Banner False Positive
+Date: 2026-03-15
+Status: Complete
+Summary: Fixed two cosmetic/UX issues on the live production site. Fix 1: module status dot colors in PipelineStatus.tsx now correctly map "running"/"ok"/"healthy" to green, "degraded"/"unknown"/"warning" to yellow, and all others (error/stopped) to red — previously "running" fell through to red despite green text pills. Fix 2: alert engine `_evaluate_absence` now checks US market hours (Mon-Fri 9:30-16:00 ET via `_is_us_market_hours()`) and subscribed symbol count before firing WebSocket disconnect alerts — resolves the BF-6 deferred item from TASK-038.
+Files created: 0
+Files modified: 2
+Notes: Passed validation on first attempt. One minor issue: `_is_us_market_hours()` does not account for US market holidays (Christmas, Thanksgiving, etc.) — could fire false alerts on holidays. Bare `except Exception: pass` on WebSocket health check is acceptable (falls through to normal evaluation).

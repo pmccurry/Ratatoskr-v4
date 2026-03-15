@@ -224,6 +224,24 @@ class AlertEngine:
         if not event_type:
             return False
 
+        # For WebSocket heartbeat absence, suppress outside market hours
+        # and when no symbols are subscribed
+        if event_type == "market_data.websocket.heartbeat":
+            if not self._is_us_market_hours():
+                return False
+            try:
+                from app.market_data.startup import get_ws_manager
+                ws_mgr = get_ws_manager()
+                if ws_mgr:
+                    health = ws_mgr.get_health()
+                    total_symbols = sum(
+                        h.get("subscribedSymbols", 0) for h in health.values()
+                    )
+                    if total_symbols == 0:
+                        return False
+            except Exception:
+                pass  # If we can't check, proceed with normal evaluation
+
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=window_seconds)
         result = await db.execute(
             select(func.count()).select_from(AuditEvent).where(
@@ -233,3 +251,17 @@ class AlertEngine:
         )
         count = result.scalar_one()
         return count == 0
+
+    @staticmethod
+    def _is_us_market_hours() -> bool:
+        """Check if US equity market is currently open (Mon-Fri 9:30 AM - 4:00 PM ET)."""
+        try:
+            from zoneinfo import ZoneInfo
+        except ImportError:
+            from backports.zoneinfo import ZoneInfo  # type: ignore[no-redef]
+        now_et = datetime.now(ZoneInfo("America/New_York"))
+        if now_et.weekday() >= 5:  # Saturday/Sunday
+            return False
+        market_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
+        market_close = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+        return market_open <= now_et <= market_close
