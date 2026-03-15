@@ -14,6 +14,8 @@ import {
 import type { Column } from '@/components';
 import type { StrategyDetail as StrategyDetailType, StrategyEvaluation } from '@/types/strategy';
 import type { Position } from '@/types/position';
+import { BacktestForm } from '@/features/backtesting/BacktestForm';
+import { BacktestResultsList } from '@/features/backtesting/BacktestResultsList';
 
 type PositionRecord = Position & Record<string, unknown>;
 type EvalRecord = StrategyEvaluation & Record<string, unknown>;
@@ -58,6 +60,8 @@ const TABS = [
   { key: 'signals', label: 'Signals' },
   { key: 'config', label: 'Config' },
   { key: 'evaluations', label: 'Evaluation Log' },
+  { key: 'backtest', label: 'Backtest' },
+  { key: 'backtestResults', label: 'Results' },
 ];
 
 export default function StrategyDetail() {
@@ -501,6 +505,17 @@ export default function StrategyDetail() {
                   );
                 })()}
               </div>
+            )}
+
+            {activeTab === 'backtest' && (
+              <BacktestForm
+                strategyId={id!}
+                onComplete={(backtestId) => navigate(`/backtests/${backtestId}`)}
+              />
+            )}
+
+            {activeTab === 'backtestResults' && (
+              <BacktestResultsList strategyId={id!} />
             )}
           </>
         )}

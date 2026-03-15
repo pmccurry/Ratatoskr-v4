@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-040 complete)
+# Last updated: 2026-03-15 (TASK-041 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -818,5 +818,33 @@
     - failed backtests store error and status=failed
     - all financial calculations use Decimal
     - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-041
+  artifact: backtest UI (frontend)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-040
+  acceptance:
+    - backtest form renders on strategy detail page with all config fields
+    - symbol input for selecting pairs
+    - position sizing changes inputs based on type
+    - exit config has SL/TP/signal-exit/max-hold
+    - run backtest button with loading and elapsed timer
+    - on completion navigates to detail view
+    - on failure shows error message
+    - results list shows all backtests with key metrics
+    - clicking result row navigates to detail
+    - detail view shows 6 metric cards
+    - equity curve as line chart with drawdown overlay
+    - initial capital reference line on equity chart
+    - trade table with pagination (50/page)
+    - trade table sortable by PnL, duration
+    - PnL values colored green/red
+    - exit reason shown for each trade
+    - route /backtests/:id works
+    - no backend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15

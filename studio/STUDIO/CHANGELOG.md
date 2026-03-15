@@ -366,3 +366,11 @@ Summary: Built complete backtest engine as new `backtesting` module. Core bar re
 Files created: 10
 Files modified: 1
 Notes: Passed validation on first attempt. Two minor items: (1) `symbols` type annotation in models.py says `dict` but should be `list` (runtime works fine since JSONB accepts both), (2) linear window growth `bar_dicts[:bar_index+1]` could be slow for 500K+ bar backtests (V1 trade-off). Synchronous execution may risk HTTP timeout for very large backtests.
+
+## TASK-041 — Backtest UI (Frontend)
+Date: 2026-03-15
+Status: Complete
+Summary: Built complete backtest frontend UI with 7 new files in `features/backtesting/`. BacktestForm on strategy detail page with full config (symbols, timeframe, date range, capital, 4 position sizing types, exit config with SL/TP/signal/max-hold), loading state with elapsed timer, 5-minute timeout. BacktestResultsList with 9-column DataTable (date, timeframe, period, trades, PnL, win rate, Sharpe, max DD, status). BacktestDetail view with header, 6 metric cards (Net PnL, Win Rate, Profit Factor, Sharpe, Max Drawdown, Total Trades), equity curve ComposedChart (equity line + drawdown area + initial capital reference line), and paginated/sortable trade table with exit reason badges and summary row. Route `/backtests/:id` added. Strategy detail page gains Backtest and Results tabs.
+Files created: 7
+Files modified: 2
+Notes: Required re-validation after initial review found 3 issues (trade table not rendered, columns not sortable, no summary row). All 3 fixed and verified. Minor items: equity curve uses sample=300 instead of 200 (acceptable), symbol input uses comma-separated text instead of multi-select (documented), exit reason key mapping should be verified at runtime against backend values.

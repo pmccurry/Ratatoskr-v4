@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-040 complete — new backtesting module with full bar replay engine, 4 exit types (SL/TP/signal/time), 4 position sizing types, 27 performance metrics, equity curve tracking, 5 REST endpoints. 10 files created, 1 modified. Reuses existing condition engine and indicator library.)
+2026-03-15 (TASK-041 complete — backtest UI: trigger form on strategy detail page, results list, detail view with 6 metric cards, equity curve chart with drawdown overlay, paginated/sortable trade table. 7 files created, 2 modified.)

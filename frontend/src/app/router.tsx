@@ -15,6 +15,7 @@ import Portfolio from '@/pages/Portfolio';
 import Risk from '@/pages/Risk';
 import System from '@/pages/System';
 import SettingsPage from '@/pages/Settings';
+import { BacktestDetail } from '@/features/backtesting/BacktestDetail';
 import NotFound from '@/pages/NotFound';
 
 function AdminLayout() {
@@ -52,6 +53,7 @@ export function AppRouter() {
           <Route path="/orders" element={<Orders />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/risk" element={<Risk />} />
+          <Route path="/backtests/:id" element={<BacktestDetail />} />
 
           {/* Admin routes */}
           <Route element={<AdminLayout />}>
