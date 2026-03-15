@@ -219,8 +219,10 @@ class StrategyRunner:
     async def evaluate_strategy(
         self, db: AsyncSession, strategy: Strategy, active_config: StrategyConfigVersion
     ) -> dict:
+        from app.strategies.validation import normalize_config_keys
+
         start_time = time.monotonic()
-        config_json = active_config.config_json
+        config_json = normalize_config_keys(active_config.config_json)
         now = datetime.now(timezone.utc)
 
         trading_hours = config_json.get("trading_hours", {"mode": "regular"})

@@ -1,6 +1,7 @@
 """Strategy config validation — comprehensive checks at save time."""
 
 import logging
+import re
 
 from app.strategies.formulas.parser import FormulaParser
 from app.strategies.indicators.registry import IndicatorRegistry
@@ -19,6 +20,30 @@ _VALID_SL_TP_TYPES = {"percent", "atr_multiple", "fixed", "risk_multiple"}
 _VALID_SIZING_METHODS = {"fixed_qty", "fixed_dollar", "percent_equity", "risk_based"}
 _VALID_SYMBOL_MODES = {"explicit", "watchlist", "filtered"}
 
+_CAMEL_TO_SNAKE_RE = re.compile(r"(?<!^)(?=[A-Z])")
+
+
+def normalize_config_keys(config: dict) -> dict:
+    """Recursively convert camelCase config keys to snake_case.
+
+    The frontend sends camelCase (entryConditions, positionSizing) but the
+    backend validators and runner expect snake_case (entry_conditions,
+    position_sizing).  Normalising once at the boundary lets all downstream
+    code use a single convention.
+    """
+
+    def _to_snake(name: str) -> str:
+        return _CAMEL_TO_SNAKE_RE.sub("_", name).lower()
+
+    def _walk(obj):  # noqa: ANN202
+        if isinstance(obj, dict):
+            return {_to_snake(k): _walk(v) for k, v in obj.items()}
+        if isinstance(obj, list):
+            return [_walk(item) for item in obj]
+        return obj
+
+    return _walk(config)
+
 
 class StrategyValidator:
     """Validates strategy configuration at save time."""
@@ -28,6 +53,7 @@ class StrategyValidator:
         self._parser = formula_parser
 
     def validate(self, config: dict) -> StrategyValidationResponse:
+        config = normalize_config_keys(config)
         errors: list[dict] = []
         warnings: list[dict] = []
 

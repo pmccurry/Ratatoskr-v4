@@ -108,7 +108,8 @@ class SafetyMonitor:
                 if not active_config:
                     continue
 
-                config_json = active_config.config_json
+                from app.strategies.validation import normalize_config_keys
+                config_json = normalize_config_keys(active_config.config_json)
 
                 # Query portfolio for open positions belonging to this strategy
                 positions: list[dict] = []

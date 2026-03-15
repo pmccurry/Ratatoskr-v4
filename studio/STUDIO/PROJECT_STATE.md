@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-041a complete — fixed strategy validation crash when symbols config is a list instead of dict. Added list guards in validation.py and runner.py. Backward compatible with dict format.)
+2026-03-15 (TASK-041b complete — added recursive camelCase-to-snake_case normalizer for strategy config keys. Applied at 4 entry points: validation, runner, safety monitor, backtest runner. Idempotent and backward compatible.)

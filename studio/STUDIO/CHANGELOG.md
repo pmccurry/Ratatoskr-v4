@@ -382,3 +382,11 @@ Summary: Fixed 500 error when saving a strategy where `config.symbols` is a plai
 Files created: 0
 Files modified: 2
 Notes: Passed validation on first attempt. Conservative fix — early returns for list format, no changes to existing dict logic.
+
+## TASK-041b — Fix Strategy Config CamelCase/Snake_Case Mismatch
+Date: 2026-03-15
+Status: Complete
+Summary: Fixed 400 error when saving strategies — frontend sends camelCase config keys (`entryConditions`, `exitConditions`, `positionSizing`, `riskManagement`) but backend validator expects snake_case. Added `normalize_config_keys()` function in validation.py with compiled regex, recursive key conversion. Applied at 4 entry points: `validation.validate()`, `runner.evaluate_strategy()`, `safety_monitor.run_check()`, and `backtesting.runner.run()`. Pure, stateless, idempotent — snake_case keys pass through unchanged.
+Files created: 0
+Files modified: 4
+Notes: Passed validation on first attempt. Normalizer recursively converts all nested dict keys (handles nested camelCase like stopLoss.type). List items left unchanged.

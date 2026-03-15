@@ -23,7 +23,9 @@ class BacktestRunner:
 
         Returns metrics dict.
         """
-        config = backtest_run.strategy_config
+        from app.strategies.validation import normalize_config_keys
+
+        config = normalize_config_keys(backtest_run.strategy_config)
 
         # Initialize condition engine (reuse strategy module's engine)
         from app.strategies.indicators import get_registry
