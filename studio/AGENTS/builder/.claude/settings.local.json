@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/users/patri/ratatoskr-v4/**)",
+      "Bash(mkdir -p backend/app/common backend/app/auth backend/app/market_data/adapters backend/app/market_data/streams backend/app/market_data/options backend/app/market_data/backfill backend/app/market_data/universe backend/app/market_data/aggregation backend/app/strategies/indicators backend/app/strategies/conditions backend/app/strategies/formulas backend/app/strategies/custom backend/app/signals backend/app/risk/checks backend/app/risk/monitoring backend/app/paper_trading/executors backend/app/paper_trading/forex_pool backend/app/paper_trading/shadow backend/app/paper_trading/fill_simulation backend/app/portfolio backend/app/observability/events backend/app/observability/metrics backend/app/observability/alerts backend/app/observability/logging backend/migrations/versions frontend/src/app frontend/src/components/ui frontend/src/features/auth frontend/src/features/dashboard frontend/src/features/strategies frontend/src/features/signals frontend/src/features/orders frontend/src/features/portfolio frontend/src/features/risk frontend/src/features/system frontend/src/features/settings frontend/src/layouts frontend/src/pages frontend/src/lib frontend/src/types frontend/public shared/schemas shared/contracts shared/types shared/constants infra/docker infra/scripts infra/env infra/ci tests/unit tests/integration tests/e2e docs/product docs/architecture docs/data docs/risk docs/api docs/ui docs/ops docs/testing)",
+      "Bash(cd /c/users/patri/ratatoskr-v4/frontend && npm install 2>&1)"
+    ]
+  }
+}

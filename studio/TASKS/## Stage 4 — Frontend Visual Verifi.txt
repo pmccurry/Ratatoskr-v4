@@ -1,0 +1,61 @@
+## Stage 4 — Frontend Visual Verification
+
+You haven't seen the frontend yet. This stage is manual review.
+
+### 4.1 Auth Flow
+- [x] Login page renders correctly (dark theme, centered card)
+- [x] Login with admin credentials works 
+	-sort of, password was changed(admin@ratatoskr.local, changeme-admin-password-123)
+- [F] Token stored, redirected to /dashboard
+	-dashboard loads as a black, blank screen
+- [x] Sidebar visible with all nav items
+- [F] Admin section visible (System, Settings)
+	system visible, settings re-directs to a black, blank screen
+- [x] Logout works, redirects to /login
+
+### 4.2 Dashboard- FULL ERROR
+- [F] 4 stat cards render (may show zeros without data — that's expected)
+- [F] Equity curve chart renders (empty state if no snapshots)
+- [F] Strategy status list renders (empty state if no strategies)
+- [F] Activity feed renders (empty state if no events)
+- [F] Sidebar collapse/expand works
+- [F] Status bar shows at bottom
+
+### 4.3 Strategy Builder
+- [X] /strategies shows empty state with "+ New Strategy" button
+- [X] /strategies/new renders 9-section form
+- [X] Identity section: name, description, market radio, timeframe select
+- [X] Symbols section: mode radio switches views
+- [X] Condition builder: add/remove rows, AND/OR toggle
+- [X] Indicator select groups by category
+- [X] Selecting indicator renders dynamic params
+- [X] Risk management section renders SL/TP/trailing controls
+- [X] Position sizing section renders method select + value
+- [F] Save Draft creates a strategy
+	-1 ERROR VALIDATION REQUEST FAILED
+- [F] Strategy appears in list after creation
+
+### 4.4 All Views Smoke Test
+- [x] Signals page renders (empty state)
+- [x] Orders page renders with 4 tabs
+- [F] Portfolio page renders with 4 tabs
+	-blank black page
+- [F] Risk dashboard renders with kill switch
+	-blank black page
+- [X] System page renders with 5 tabs (admin)
+- [F] Settings page renders with 5 tabs (admin)
+	-blank black page
+- [F] 404 page renders for unknown routes
+	-unknown or running, failed to load database and running jobs
+- [F] No console errors on any page
+	-not all pages loaded
+
+### 4.5 Theme and Polish
+- [x] All pages use dark theme consistently
+- [x] No white flash on page transitions
+- [x] Monospace font on financial numbers
+- [F] PnL values show green/red coloring
+	-dashboard doesn't load
+- [F] Status pills show correct colors
+	dashboard doesn't load
+- [X] Loading skeletons appear while data loads

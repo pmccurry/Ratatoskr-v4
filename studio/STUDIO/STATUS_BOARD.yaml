@@ -1,0 +1,728 @@
+# STATUS_BOARD
+# Last updated: 2026-03-15 (TASK-037 complete)
+
+# ============================================================
+# STUDIO BOOTSTRAP
+# ============================================================
+
+- id: STUDIO-001
+  artifact: canonical studio files
+  owner: librarian
+  status: complete
+  depends_on: []
+  acceptance:
+    - PROJECT_STATE.md exists and is current
+    - DECISIONS.md exists with all 24 decisions
+    - STATUS_BOARD.yaml exists and is current
+    - ROADMAP.md exists
+    - GLOSSARY.md exists
+    - TECH_STACK.md exists
+    - ENGINEERING_CONVENTIONS.md exists
+    - REPO_CONVENTIONS.md exists
+    - AGENT_HIERARCHY.md exists
+  completed_at: 2026-03-12
+
+# ============================================================
+# SPECS
+# ============================================================
+
+- id: SPEC-001
+  artifact: architecture spec
+  owner: backend_architect
+  status: complete
+  depends_on:
+    - STUDIO-001
+  acceptance:
+    - architecture.md exists
+    - module map is defined
+    - repo direction consistent with locked decisions
+  completed_at: 2026-03-12
+
+- id: SPEC-002
+  artifact: data contracts spec
+  owner: data_engineer
+  status: complete
+  depends_on:
+    - STUDIO-001
+    - SPEC-001
+  acceptance:
+    - data_contracts.md exists
+    - core schemas are listed
+    - naming matches glossary
+  completed_at: 2026-03-12
+
+- id: SPEC-003
+  artifact: market data module spec
+  owner: backend_architect
+  status: complete
+  depends_on:
+    - SPEC-001
+    - SPEC-002
+  acceptance:
+    - market_data_module_spec.md exists
+    - broker abstraction defined
+    - universe filter defined
+    - WebSocket manager defined
+    - bar storage and aggregation defined
+    - backfill defined
+    - options data access defined
+    - health monitoring defined
+    - all config variables listed
+    - all API endpoints listed
+    - all database tables listed
+  completed_at: 2026-03-12
+
+- id: SPEC-004
+  artifact: strategy module spec
+  owner: quant_architect
+  status: complete
+  depends_on:
+    - SPEC-003
+  acceptance:
+    - strategy_module_spec.md exists
+    - config-driven strategy model defined
+    - indicator catalog with all MVP indicators
+    - condition engine operators specified
+    - formula expression parser scoped
+    - strategy lifecycle and versioning defined
+    - strategy runner evaluation pipeline defined
+    - safety monitor defined
+    - live editing behavior documented
+    - manual close flow specified
+    - position overrides specified
+  completed_at: 2026-03-12
+
+- id: SPEC-005
+  artifact: signals module spec
+  owner: backend_architect
+  status: complete
+  depends_on:
+    - SPEC-004
+  acceptance:
+    - signals_module_spec.md exists
+    - signal data model defined
+    - validation rules specified
+    - deduplication logic specified
+    - expiry mechanism defined
+    - signal-to-risk handoff contract explicit
+  completed_at: 2026-03-12
+
+- id: SPEC-006
+  artifact: risk engine module spec
+  owner: risk_execution_engineer
+  status: complete
+  depends_on:
+    - SPEC-005
+  acceptance:
+    - risk_engine_module_spec.md exists
+    - all 12 risk checks specified with ordering
+    - exit signal handling explicit
+    - kill switch behavior defined
+    - risk configuration model defined
+    - drawdown monitoring specified
+    - daily loss tracking specified
+  completed_at: 2026-03-12
+
+- id: SPEC-007
+  artifact: paper trading module spec
+  owner: risk_execution_engineer
+  status: complete
+  depends_on:
+    - SPEC-006
+  acceptance:
+    - paper_trading_module_spec.md exists
+    - executor abstraction defined
+    - broker paper trading flow specified
+    - forex account pool model specified
+    - shadow tracking specified
+    - fill simulation logic step-by-step
+    - options order handling defined
+  completed_at: 2026-03-12
+
+- id: SPEC-008
+  artifact: portfolio module spec
+  owner: data_engineer
+  status: complete
+  depends_on:
+    - SPEC-007
+  acceptance:
+    - portfolio_module_spec.md exists
+    - fill-to-position logic for all four scenarios
+    - mark-to-market process specified
+    - equity and cash management defined
+    - portfolio snapshots defined
+    - realized PnL ledger defined
+    - dividend processing defined
+    - stock split adjustment defined
+    - options expiration handling defined
+    - performance metrics formulas listed
+  completed_at: 2026-03-12
+
+- id: SPEC-009
+  artifact: observability module spec
+  owner: devops_sre
+  status: complete
+  depends_on:
+    - SPEC-003
+    - SPEC-004
+    - SPEC-005
+    - SPEC-006
+    - SPEC-007
+    - SPEC-008
+  acceptance:
+    - observability_module_spec.md exists
+    - three-layer architecture defined (events, metrics, alerts)
+    - complete event catalog (~60 events) documented
+    - all system metrics enumerated
+    - alert rules and notification channels specified
+    - telemetry dashboard views described
+  completed_at: 2026-03-12
+
+- id: SPEC-010
+  artifact: auth module spec
+  owner: security_engineer
+  status: complete
+  depends_on:
+    - SPEC-001
+  acceptance:
+    - auth_module_spec.md exists
+    - user model and roles defined
+    - JWT + refresh token system specified
+    - row-level security pattern documented
+    - impact on all other modules documented
+  completed_at: 2026-03-12
+
+- id: SPEC-011
+  artifact: cross-cutting specs
+  owner: backend_architect
+  status: complete
+  depends_on:
+    - SPEC-001
+    - SPEC-010
+  acceptance:
+    - cross_cutting_specs.md exists
+    - database/persistence patterns defined
+    - error handling with code catalog defined
+    - configuration system specified
+    - inter-module interfaces listed
+    - API conventions (pagination, envelope, filtering) defined
+    - testing strategy defined
+    - startup sequence defined
+    - all configuration variables cataloged
+  completed_at: 2026-03-12
+
+- id: SPEC-012
+  artifact: frontend specs
+  owner: frontend_ux_architect
+  status: complete
+  depends_on:
+    - SPEC-003
+    - SPEC-004
+    - SPEC-005
+    - SPEC-006
+    - SPEC-007
+    - SPEC-008
+    - SPEC-009
+    - SPEC-010
+    - SPEC-011
+  acceptance:
+    - frontend_specs.md exists
+    - app shell and navigation defined
+    - all 10 views specified with layouts and data requirements
+    - strategy builder form detailed
+    - component library enumerated
+    - theme and styling conventions defined
+    - state management rules defined
+    - responsive behavior documented
+  completed_at: 2026-03-12
+
+# ============================================================
+# TASKS
+# ============================================================
+
+- id: TASK-001
+  artifact: repository and studio bootstrap
+  owner: supervisor
+  status: complete
+  depends_on:
+    - STUDIO-001
+    - SPEC-001
+    - SPEC-011
+  acceptance:
+    - repo structure matches architecture
+    - all module folders exist
+    - backend Python project config (uv, pyproject.toml)
+    - frontend Vite + React + TypeScript baseline
+    - Docker Compose for app + db
+    - environment example files
+    - studio folders populated with canonical files
+    - all spec files placed in studio/SPECS
+    - no deep feature implementation
+  completed_at: 2026-03-12
+
+- id: BUILD-001
+  artifact: repository bootstrap implementation
+  owner: coding_agent
+  status: complete
+  depends_on:
+    - TASK-001
+  acceptance:
+    - repo structure exists matching task deliverables
+    - studio folders populated
+    - docs folders populated
+    - test folders exist
+    - baseline configs present and valid
+  completed_at: 2026-03-12
+
+# ============================================================
+# FUTURE TASKS (not yet scoped)
+# ============================================================
+
+- id: TASK-002
+  artifact: make it runnable (FastAPI entrypoint, frontend shell, Docker Compose, health check)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - BUILD-001
+  completed_at: 2026-03-12
+
+- id: TASK-003
+  artifact: database foundation (common models, Alembic setup, session management)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - BUILD-001
+  completed_at: 2026-03-12
+  notes: deliverables absorbed by TASK-002 (common module, Alembic, session management all implemented there)
+
+- id: TASK-004
+  artifact: auth module implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-003
+  completed_at: 2026-03-13
+
+- id: TASK-005
+  artifact: market data module — models, schemas, broker abstraction interface
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-003
+  completed_at: 2026-03-13
+
+- id: TASK-006
+  artifact: market data module — universe filter, watchlist, backfill
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-005
+  completed_at: 2026-03-13
+
+- id: TASK-007
+  artifact: market data module — WebSocket manager, bar storage, aggregation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-005
+  completed_at: 2026-03-13
+
+- id: TASK-008
+  artifact: strategy module — indicator library, condition engine, formula parser
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-005
+  completed_at: 2026-03-13
+
+- id: TASK-009
+  artifact: strategy module — strategy CRUD, validation, lifecycle, runner
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-008
+  completed_at: 2026-03-13
+
+- id: TASK-010
+  artifact: signals module implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-009
+  completed_at: 2026-03-13
+
+- id: TASK-011
+  artifact: risk engine implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-010
+  completed_at: 2026-03-13
+
+- id: TASK-012
+  artifact: paper trading module implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-011
+  notes: split into TASK-012a (core engine) and TASK-012b (forex pool, shadow tracking, Alpaca paper)
+  completed_at: 2026-03-13
+
+- id: TASK-012a
+  artifact: paper trading — core engine and fill simulation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-011
+  completed_at: 2026-03-13
+
+- id: TASK-012b
+  artifact: paper trading — forex account pool, shadow tracking, Alpaca paper API
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-012a
+  completed_at: 2026-03-13
+
+- id: TASK-013
+  artifact: portfolio module implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-012a
+  notes: split into TASK-013a (positions, cash, fill processing, MTM) and TASK-013b (snapshots, PnL ledger, dividends, splits, metrics)
+  completed_at: 2026-03-13
+
+- id: TASK-013a
+  artifact: portfolio — positions, cash, fill processing, and mark-to-market
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-012a
+  completed_at: 2026-03-13
+
+- id: TASK-013b
+  artifact: portfolio — snapshots, PnL ledger, dividends, splits, performance metrics
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-013a
+  completed_at: 2026-03-13
+
+- id: TASK-014
+  artifact: observability module implementation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-004
+  completed_at: 2026-03-14
+
+- id: TASK-015
+  artifact: frontend shell and navigation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-004
+  completed_at: 2026-03-14
+
+- id: TASK-016
+  artifact: frontend — dashboard home view
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-008
+    - TASK-015
+  completed_at: 2026-03-14
+  notes: originally scoped as "strategy builder UI", rescoped to "dashboard home view" during task packet creation
+
+- id: TASK-017
+  artifact: frontend — strategy list, builder, and detail views
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-015
+  completed_at: 2026-03-14
+
+- id: TASK-018
+  artifact: frontend — signals and paper trading views
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-015
+  completed_at: 2026-03-14
+
+- id: TASK-019
+  artifact: frontend — portfolio view
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-015
+  completed_at: 2026-03-14
+
+- id: TASK-020
+  artifact: frontend — risk dashboard, system telemetry, and settings
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-015
+  completed_at: 2026-03-14
+  notes: completes Milestone 12 (Frontend Views) and Phase 3 (Dashboard and Operator Layer)
+
+- id: TASK-021
+  artifact: backend bug fixes (8 fixes across portfolio, signals, paper trading, risk modules)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-013b
+    - TASK-012b
+    - TASK-011
+  completed_at: 2026-03-14
+
+- id: TASK-022
+  artifact: frontend bug fixes (16 fixes, 3 unused components deleted)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-016
+    - TASK-017
+    - TASK-018
+    - TASK-019
+    - TASK-020
+  completed_at: 2026-03-14
+
+- id: TASK-023
+  artifact: Docker Compose and startup polish
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-002
+    - TASK-004
+  completed_at: 2026-03-14
+
+- id: TASK-024
+  artifact: frontend visual fix-up (formatter null guards, error boundaries, crash fixes)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-015
+    - TASK-016
+    - TASK-017
+    - TASK-019
+    - TASK-020
+  completed_at: 2026-03-14
+
+- id: TASK-025
+  artifact: integration verification and hardening (CORS, JWT guard, formatter sign fix, dockerignore, stale cleanup)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-023
+    - TASK-024
+  completed_at: 2026-03-14
+
+- id: TASK-026
+  artifact: test infrastructure and strategy module unit tests
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-025
+  completed_at: 2026-03-14
+
+- id: TASK-027
+  artifact: unit tests — trading pipeline (risk, fills, PnL, signals, forex pool)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-026
+  completed_at: 2026-03-14
+
+- id: TASK-028
+  artifact: integration tests (database-backed)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-026
+    - TASK-027
+  completed_at: 2026-03-14
+
+- id: TASK-029
+  artifact: E2E API flow tests
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-028
+  completed_at: 2026-03-14
+
+- id: TASK-030
+  artifact: frontend unit tests (vitest)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-029
+  completed_at: 2026-03-14
+
+- id: TASK-031
+  artifact: Playwright browser E2E tests (completes Milestone 13)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-030
+  completed_at: 2026-03-14
+
+- id: TASK-032
+  artifact: Alpaca broker connectivity and real data pipeline verification
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-031
+  completed_at: 2026-03-14
+
+- id: TASK-033
+  artifact: OANDA forex connectivity and real account pool mapping
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-032
+  completed_at: 2026-03-14
+
+- id: TASK-034
+  artifact: audit trail verification and trade reconciliation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-032
+    - TASK-033
+  acceptance:
+    - complete event chain documented for successful entry
+    - complete event chain documented for rejected signal
+    - missing events identified and added (4 emission points)
+    - GET /api/v1/signals/:id/trace endpoint exists
+    - GET /api/v1/paper-trading/reconciliation endpoint exists
+    - reconciliation reports mismatches
+    - reconciliation handles unconfigured brokers
+    - event immutability verified
+    - activity feed reads from audit_events table
+    - all new endpoints require authentication
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-14
+
+- id: TASK-035
+  artifact: pre-live readiness checklist and deployment hardening
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-034
+  acceptance:
+    - POST /auth/login is rate limited (5/minute per IP)
+    - rate-limited requests return 429 with structured error response
+    - request body size limit middleware rejects oversized requests with 413
+    - production logging outputs JSON format when LOG_FORMAT=json
+    - sensitive data never appears in log output
+    - scripts/readiness_check.py exists and runs all checks
+    - readiness check verifies JWT secret, admin password, CORS, database, broker keys, migrations
+    - readiness check exits 1 on failure, 0 on success
+    - README has pre-live checklist with automated and manual steps
+    - .env.example includes request size variable
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-14
+  notes: completes Milestone 14 (Live Trading Preparation) and Phase 4 (Hardening and Live Preparation)
+
+- id: TASK-036
+  artifact: live connectivity verification and post-hardening bug fixes
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-035
+  acceptance:
+    - health subscribedSymbols shows correct count
+    - WebSocket receive() doesn't trigger false reconnection
+    - pool seed_accounts() handles virtual-to-real without orphans
+    - OANDA adapter import asyncio at top level
+    - shadow exit fees match entry fee calculation
+    - reconciliation is admin-only
+    - OANDA reconciliation checks qty/side mismatches
+    - reconciliation uses Decimal for qty comparison
+    - rate limit variables configurable via Settings
+    - check_sensitive_logs performs actual scanning
+    - check_kill_switch authenticates and checks real state
+    - backend starts with Alpaca keys without crashing
+    - backend starts with OANDA keys without crashing
+    - readiness check runs and results documented
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-14
+  notes: fixes all 11 bugs from TASK-032 through TASK-035 Validator reports
+
+- id: TASK-036a
+  artifact: fix Alpaca universe filter 404 error handling
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-036
+  acceptance:
+    - universe filter runs without error on startup with real Alpaca keys
+    - watchlist populated after startup
+    - Alpaca WebSocket connects after watchlist populated
+    - health endpoint shows connected status
+    - fix documented with before/after
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-14
+
+- id: TASK-036b
+  artifact: fix OANDA backfill count limit and DB transaction cascade
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-036a
+  acceptance:
+    - OANDA backfill never exceeds 5000 candles per API call
+    - backfill paginates correctly for large ranges
+    - failed backfill for one symbol doesn't prevent others
+    - failed backfill doesn't poison DB session
+    - OANDA startup completes successfully
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-036c
+  artifact: fix greenlet spawn error in paginated backfill
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-036b
+  acceptance:
+    - 1m backfill completes without greenlet_spawn error
+    - 1h backfill completes without greenlet_spawn error
+    - 4h and 1d backfills continue to work (no regression)
+    - fix documented with root cause and before/after
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
+
+- id: TASK-037
+  artifact: VPS deployment (DigitalOcean + Docker Compose + SSL)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-036c
+  acceptance:
+    - server-setup.sh installs Docker, firewall, swap, app user
+    - docker-compose.prod.yml defines 5 services (db, backend, frontend, nginx, certbot)
+    - only nginx exposes ports (80, 443)
+    - nginx prod.conf.template has HTTPS redirect, SSL, API proxy, SPA fallback
+    - nginx init.conf exists for HTTP-only SSL bootstrap
+    - security headers present (X-Frame-Options, X-Content-Type-Options, HSTS)
+    - .env.production.example has all variables plus DOMAIN, CERTBOT_EMAIL
+    - CORS defaults to https://production.ratatoskr.trade
+    - deploy.sh handles env check, nginx config, SSL bootstrap, build, migrations, seed
+    - update.sh handles git pull, rebuild, migrations
+    - frontend uses VITE_API_BASE_URL env var
+    - certbot auto-renewal runs in background
+    - all services have restart unless-stopped
+    - README has deployment section
+    - no application logic modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-15
