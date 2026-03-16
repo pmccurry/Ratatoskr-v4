@@ -21,17 +21,17 @@ type PositionRecord = Position & Record<string, unknown>;
 type EvalRecord = StrategyEvaluation & Record<string, unknown>;
 
 interface PerformanceMetrics {
-  totalPnl: number;
-  winRate: number;
-  totalTrades: number;
-  profitFactor: number;
-  avgWinner: number;
-  avgLoser: number;
-  riskReward: number;
-  maxDrawdown: number;
-  sharpeRatio: number;
-  avgHoldBars: number;
-  dividendIncome: number;
+  totalPnl: number | null;
+  winRate: number | null;
+  totalTrades: number | null;
+  profitFactor: number | null;
+  avgWinner: number | null;
+  avgLoser: number | null;
+  riskReward: number | null;
+  maxDrawdown: number | null;
+  sharpeRatio: number | null;
+  avgHoldBars: number | null;
+  dividendIncome: number | null;
 }
 
 interface ClosedTrade {
@@ -321,7 +321,7 @@ export default function StrategyDetail() {
             {activeTab === 'performance' && (
               <div className="space-y-6">
                 <CardGrid>
-                  <StatCard label="Total PnL" value={metrics ? formatPnl(metrics.totalPnl) : '—'} trend={metrics ? (metrics.totalPnl >= 0 ? 'up' : 'down') : undefined} />
+                  <StatCard label="Total PnL" value={metrics ? formatPnl(metrics.totalPnl ?? 0) : '—'} trend={metrics?.totalPnl != null ? (metrics.totalPnl >= 0 ? 'up' : 'down') : undefined} />
                   <StatCard label="Win Rate" value={metrics ? formatPercent(metrics.winRate) : '—'} />
                   <StatCard label="Total Trades" value={metrics ? (metrics.totalTrades ?? 0).toLocaleString() : '—'} />
                   <StatCard label="Profit Factor" value={metrics && metrics.profitFactor != null && isFinite(metrics.profitFactor) ? metrics.profitFactor.toFixed(2) : '—'} />

@@ -16,7 +16,7 @@ Fix Strategy Detail Page Crash (profitFactor null guard)
 None
 
 ## Files Modified
-- `frontend/src/pages/StrategyDetail.tsx` — Added null guards to 5 metrics values: `profitFactor` (null + Infinity guard), `totalTrades` (null fallback to 0), `riskReward` (null guard), `sharpeRatio` (null guard), `avgHoldBars` (null fallback to 0), `maxDrawdown` (null fallback to 0)
+- `frontend/src/pages/StrategyDetail.tsx` — Changed `PerformanceMetrics` interface: all fields from `number` to `number | null` (lines 23-33). This makes TypeScript enforce null checks at compile time. Added null guards to all 7 metrics values: `totalPnl` (null fallback + trend guard), `profitFactor` (null + Infinity guard), `totalTrades` (null fallback to 0), `riskReward` (null guard), `sharpeRatio` (null guard), `avgHoldBars` (null fallback to 0), `maxDrawdown` (null fallback to 0)
 - `frontend/src/features/backtesting/BacktestResultsList.tsx` — Added `isFinite()` guard on sharpe ratio `.toFixed(2)` call
 
 ## Files Deleted
