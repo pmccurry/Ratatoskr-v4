@@ -205,25 +205,25 @@ class PerformanceMetricsResponse(BaseModel):
         populate_by_name=True,
     )
 
-    total_return: Decimal
-    total_return_percent: Decimal
-    total_pnl: Decimal
-    win_rate: Decimal
-    profit_factor: Decimal
-    average_winner: Decimal
-    average_loser: Decimal
-    risk_reward_ratio: Decimal
-    max_drawdown: Decimal
-    sharpe_ratio: Decimal | None
-    sortino_ratio: Decimal | None
-    average_hold_bars: Decimal
+    total_return: float
+    total_return_percent: float
+    total_pnl: float
+    win_rate: float
+    profit_factor: float | None
+    average_winner: float
+    average_loser: float
+    risk_reward_ratio: float
+    max_drawdown: float
+    sharpe_ratio: float | None
+    sortino_ratio: float | None
+    average_hold_bars: float
     longest_win_streak: int
     longest_loss_streak: int
     total_trades: int
     winning_trades: int
     losing_trades: int
-    total_fees: Decimal
-    total_dividend_income: Decimal
+    total_fees: float
+    total_dividend_income: float
 
 
 class CashAdjustRequest(BaseModel):
