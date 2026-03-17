@@ -89,6 +89,12 @@ class StrategyValidator:
         exit_cond = config.get("exit_conditions")
         stop_loss = config.get("stop_loss")
         take_profit = config.get("take_profit")
+        # Also check inside risk_management (frontend nests SL/TP there)
+        risk_mgmt = config.get("risk_management", {}) or {}
+        if not stop_loss:
+            stop_loss = risk_mgmt.get("stop_loss")
+        if not take_profit:
+            take_profit = risk_mgmt.get("take_profit")
         has_exit = bool(
             (exit_cond and exit_cond.get("conditions"))
             or (stop_loss and stop_loss.get("value"))
@@ -350,7 +356,8 @@ class StrategyValidator:
                 })
 
     def _validate_risk_sanity(self, config: dict, errors: list, warnings: list) -> None:
-        stop_loss = config.get("stop_loss")
+        risk_mgmt = config.get("risk_management", {}) or {}
+        stop_loss = config.get("stop_loss") or risk_mgmt.get("stop_loss")
         if stop_loss and stop_loss.get("type") == "percent":
             val = stop_loss.get("value")
             if val is not None:

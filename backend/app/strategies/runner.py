@@ -546,8 +546,11 @@ class StrategyRunner:
                     "strategy_version": strategy_version,
                 }
 
+        # Resolve SL/TP/trailing from top-level or risk_management
+        risk_mgmt = config.get("risk_management", {}) or {}
+
         # 2. Stop loss
-        stop_loss = config.get("stop_loss")
+        stop_loss = config.get("stop_loss") or risk_mgmt.get("stop_loss")
         if stop_loss and stop_loss.get("value"):
             stop_price = self._compute_stop_price(stop_loss, avg_entry, side, bars)
             if stop_price is not None:
@@ -563,7 +566,7 @@ class StrategyRunner:
                     }
 
         # 3. Take profit
-        take_profit = config.get("take_profit")
+        take_profit = config.get("take_profit") or risk_mgmt.get("take_profit")
         if take_profit and take_profit.get("value"):
             target = self._compute_take_profit(take_profit, avg_entry, stop_loss, side, bars)
             if target is not None:
@@ -579,7 +582,7 @@ class StrategyRunner:
                     }
 
         # 4. Trailing stop
-        trailing = config.get("trailing_stop")
+        trailing = config.get("trailing_stop") or risk_mgmt.get("trailing_stop")
         if trailing and trailing.get("enabled"):
             sym_key = f"trailing_{symbol}"
             highest = state.get(sym_key, str(current_close))

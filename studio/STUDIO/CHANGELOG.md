@@ -398,3 +398,11 @@ Summary: Fixed crash on strategy detail page when metrics contain null or Infini
 Files created: 0
 Files modified: 2
 Notes: Passed validation on first attempt. Minor note: sharpeRatio null check doesn't explicitly guard against Infinity, but backend returns null rather than Infinity for zero-std edge case.
+
+## TASK-041d — Fix Strategy Save Payload & Exit Validation
+Date: 2026-03-16
+Status: Complete
+Summary: Fixed two issues preventing strategy creation/editing. Fix 1: frontend update path (`PUT /strategies/{id}/config`) now wraps config under `{ config: {...} }` to match `UpdateStrategyConfigRequest` schema — create path was already correct. Fix 2: exit validation in `_validate_completeness` now checks `risk_management.stop_loss` and `risk_management.take_profit` as valid exit mechanisms in addition to `exit_conditions`. Runner's `_evaluate_exit` also falls back to `risk_management.*` for SL/TP/trailing stop lookups. Top-level keys take precedence via `or` fallback pattern.
+Files created: 0
+Files modified: 3
+Notes: Passed validation on first attempt. Follow-up needed: `safety_monitor.py` still only checks top-level `stop_loss`/`take_profit`/`trailing_stop` config keys — does not check `risk_management.*` fallback. If SL/TP stored only under `risk_management`, safety monitor won't find them for orphaned positions.

@@ -196,7 +196,7 @@ export default function StrategyBuilder() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: () => api.put(`/strategies/${id}/config`, buildPayload().config),
+    mutationFn: () => api.put(`/strategies/${id}/config`, { config: buildPayload().config }),
     onSuccess: () => navigate(`/strategies/${id}`),
   });
 

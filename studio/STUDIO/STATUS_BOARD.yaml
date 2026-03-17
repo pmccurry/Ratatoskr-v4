@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-15 (TASK-041c complete)
+# Last updated: 2026-03-16 (TASK-041d complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -895,3 +895,20 @@
     - no backend code modified
     - nothing inside /studio modified
   completed_at: 2026-03-15
+
+- id: TASK-041d
+  artifact: fix strategy save payload and exit validation
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-041c
+  acceptance:
+    - POST /api/v1/strategies succeeds with all sections filled
+    - config properly nested under config key in request body
+    - strategy with only risk_management SL/TP passes validation
+    - strategy with only exit conditions passes validation
+    - strategy with both passes validation
+    - strategy with neither fails with clear error
+    - updating existing strategy config works
+    - nothing inside /studio modified
+  completed_at: 2026-03-16

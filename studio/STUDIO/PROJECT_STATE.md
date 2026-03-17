@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-15 (TASK-041c complete — fixed strategy detail page crash from null/Infinity metrics values. Added null guards and isFinite checks on all .toFixed() calls in StrategyDetail.tsx and BacktestResultsList.tsx.)
+2026-03-16 (TASK-041d complete — fixed strategy save payload wrapper and exit validation. Frontend now wraps config under config key for update path. Validator and runner check risk_management.stop_loss/take_profit as fallback exit mechanisms.)
