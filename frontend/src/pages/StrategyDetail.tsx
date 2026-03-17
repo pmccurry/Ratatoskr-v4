@@ -69,6 +69,7 @@ export default function StrategyDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [closePositionId, setClosePositionId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editPositionId, setEditPositionId] = useState<string | null>(null);
   const [expandedEvalId, setExpandedEvalId] = useState<string | null>(null);
   const [slValue, setSlValue] = useState('');
@@ -133,18 +134,23 @@ export default function StrategyDetail() {
   });
 
   const pauseMutation = useMutation({
-    mutationFn: () => api.post(`/strategies/${id}/pause`),
+    mutationFn: () => api.post(`/strategies/${id}/pause`, {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strategies', id] }),
   });
 
   const enableMutation = useMutation({
-    mutationFn: () => api.post(`/strategies/${id}/enable`),
+    mutationFn: () => api.post(`/strategies/${id}/enable`, {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strategies', id] }),
   });
 
   const disableMutation = useMutation({
-    mutationFn: () => api.post(`/strategies/${id}/disable`),
+    mutationFn: () => api.post(`/strategies/${id}/disable`, {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['strategies', id] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/strategies/${id}`),
+    onSuccess: () => navigate('/strategies'),
   });
 
   const closePositionMutation = useMutation({
@@ -312,6 +318,9 @@ export default function StrategyDetail() {
           {strategy.status !== 'disabled' && (
             <button onClick={() => disableMutation.mutate()} className="px-3 py-1.5 text-sm border border-error/30 rounded hover:bg-error/10 text-error">Disable</button>
           )}
+          {strategy.status === 'draft' && (
+            <button onClick={() => setShowDeleteConfirm(true)} className="px-3 py-1.5 text-sm border border-error/30 rounded hover:bg-error/10 text-error">Delete</button>
+          )}
         </div>
       </div>
 
@@ -428,7 +437,7 @@ export default function StrategyDetail() {
                 <div className="bg-surface rounded-lg border border-border p-4">
                   <h3 className="text-sm font-medium text-text-primary mb-4">Current Config (v{strategy.currentVersion})</h3>
                   <div className="space-y-2">
-                    {Object.entries(strategy.config).map(([key, value]) => (
+                    {Object.entries(strategy.config ?? {}).map(([key, value]) => (
                       <div key={key} className="flex gap-2 text-sm py-1 border-b border-border/50 last:border-0">
                         <span className="text-text-secondary font-medium min-w-[160px]">{key}</span>
                         <div className="text-text-primary">{renderConfigValue(value)}</div>
@@ -447,7 +456,7 @@ export default function StrategyDetail() {
                         <div key={v.version} className="flex items-start gap-3 text-sm border-b border-border/50 pb-3 last:border-0">
                           <span className="font-mono text-accent">v{v.version}</span>
                           <span className="text-text-secondary">{formatDateTime(v.createdAt)}</span>
-                          {v.changes.length > 0 && (
+                          {(v.changes ?? []).length > 0 && (
                             <ul className="text-text-tertiary">
                               {v.changes.map((c, i) => <li key={i}>{c}</li>)}
                             </ul>
@@ -535,6 +544,16 @@ export default function StrategyDetail() {
           if (selectedClosePos) closePositionMutation.mutate(selectedClosePos as unknown as Position);
         }}
         onCancel={() => setClosePositionId(null)}
+      />
+
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Strategy"
+        message={`Delete "${strategy.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={() => deleteMutation.mutate()}
+        onCancel={() => setShowDeleteConfirm(false)}
       />
     </PageContainer>
   );

@@ -302,25 +302,103 @@ export function ConditionRow({
             className={`${inputClass} w-24`}
           />
         ) : (
-          renderIndicatorSelect(
-            condition.right,
-            (key) => {
-              const def = getIndicatorDef(indicators, key);
-              const defaultParams: Record<string, unknown> = {};
-              if (def) {
-                for (const p of def.params) {
-                  defaultParams[p.name] = p.default;
-                }
-              }
-              updateRight({
-                type: 'indicator',
-                indicator: key,
-                params: defaultParams,
-                output: def && def.outputs.length > 1 ? def.outputs[0] : undefined,
-              });
-            },
-            false
-          )
+          (() => {
+            const rightDef = condition.right.indicator
+              ? getIndicatorDef(indicators, condition.right.indicator)
+              : undefined;
+            return (
+              <div className="flex items-center gap-2 flex-wrap">
+                {renderIndicatorSelect(
+                  condition.right,
+                  (key) => {
+                    const def = getIndicatorDef(indicators, key);
+                    const defaultParams: Record<string, unknown> = {};
+                    if (def) {
+                      for (const p of def.params) {
+                        defaultParams[p.name] = p.default;
+                      }
+                    }
+                    updateRight({
+                      type: 'indicator',
+                      indicator: key,
+                      params: defaultParams,
+                      output: def && def.outputs.length > 1 ? def.outputs[0] : undefined,
+                    });
+                  },
+                  false
+                )}
+                {rightDef && rightDef.outputs.length > 1 && (
+                  <select
+                    value={condition.right.output || rightDef.outputs[0]}
+                    onChange={(e) => updateRight({ output: e.target.value })}
+                    className={inputClass}
+                  >
+                    {rightDef.outputs.map((out) => (
+                      <option key={out} value={out}>
+                        {out}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {rightDef && rightDef.params.map((param) => {
+                  const currentValue =
+                    condition.right.params?.[param.name] ?? param.default;
+
+                  if (param.type === 'select' && param.options) {
+                    return (
+                      <label key={param.name} className="flex items-center gap-1">
+                        <span className="text-sm text-text-secondary">{param.name}:</span>
+                        <select
+                          value={String(currentValue)}
+                          onChange={(e) =>
+                            updateRight({
+                              params: {
+                                ...condition.right.params,
+                                [param.name]: e.target.value,
+                              },
+                            })
+                          }
+                          className={inputClass}
+                        >
+                          {param.options.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    );
+                  }
+
+                  const step = param.type === 'float' ? 0.1 : 1;
+                  return (
+                    <label key={param.name} className="flex items-center gap-1">
+                      <span className="text-sm text-text-secondary">{param.name}:</span>
+                      <input
+                        type="number"
+                        value={currentValue as number}
+                        step={step}
+                        min={param.min}
+                        max={param.max}
+                        onChange={(e) =>
+                          updateRight({
+                            params: {
+                              ...condition.right.params,
+                              [param.name]:
+                                param.type === 'int'
+                                  ? parseInt(e.target.value, 10)
+                                  : parseFloat(e.target.value),
+                            },
+                          })
+                        }
+                        className={`${inputClass} w-20`}
+                      />
+                    </label>
+                  );
+                })}
+              </div>
+            );
+          })()
         )}
       </div>
     );

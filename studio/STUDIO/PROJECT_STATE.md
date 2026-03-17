@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-16 (TASK-041d complete — fixed strategy save payload wrapper and exit validation. Frontend now wraps config under config key for update path. Validator and runner check risk_management.stop_loss/take_profit as fallback exit mechanisms.)
+2026-03-17 (TASK-042 complete — 8 bug fixes across strategy builder, backtest engine, and frontend. Right-side indicator params in condition builder, fixed sizing type strings, strategy disable/delete, config tab null guards, backtest form pre-fill from strategy config, equity curve for 0-trade backtests.)

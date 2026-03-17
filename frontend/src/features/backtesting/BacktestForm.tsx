@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
 import { runBacktest } from './backtestApi';
 import type { BacktestParams, BacktestRun } from './backtestApi';
 
@@ -16,10 +17,10 @@ const TIMEFRAMES = [
 ];
 
 const SIZING_TYPES = [
-  { value: 'fixed_qty', label: 'Fixed Quantity' },
-  { value: 'fixed_dollar', label: 'Fixed Dollar' },
+  { value: 'fixed', label: 'Fixed Quantity' },
+  { value: 'fixed_cash', label: 'Fixed Dollar' },
   { value: 'percent_equity', label: '% of Equity' },
-  { value: 'risk_based', label: 'Risk-Based' },
+  { value: 'percent_risk', label: 'Risk-Based' },
 ];
 
 const selectClass =
@@ -53,6 +54,62 @@ export function BacktestForm({ strategyId, onComplete }: BacktestFormProps) {
   const [maxHoldBars, setMaxHoldBars] = useState<number | ''>('');
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prefilledRef = useRef(false);
+
+  // Fetch strategy detail to pre-fill form fields
+  const { data: strategyData } = useQuery({
+    queryKey: ['strategy', strategyId],
+    queryFn: () => api.get(`/strategies/${strategyId}`),
+    enabled: !!strategyId,
+  });
+
+  // Pre-fill form from strategy config once data loads
+  useEffect(() => {
+    if (!strategyData?.data || prefilledRef.current) return;
+    prefilledRef.current = true;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const config = (strategyData.data as any).config;
+    if (!config) return;
+
+    // Timeframe
+    if (config.timeframe) {
+      setTimeframe(config.timeframe);
+    }
+
+    // Symbols — handle both array and { mode, list } shapes
+    const syms = config.symbols;
+    if (syms) {
+      if (Array.isArray(syms)) {
+        setSymbols(syms.join(', '));
+      } else if (syms.list && Array.isArray(syms.list)) {
+        setSymbols(syms.list.join(', '));
+      }
+    }
+
+    // Risk management — handle camelCase or snake_case keys
+    const risk = config.riskManagement || config.risk_management;
+    if (risk) {
+      const sl = risk.stopLoss || risk.stop_loss;
+      if (sl && typeof sl.value === 'number') {
+        setStopLossPips(sl.value);
+      }
+      const tp = risk.takeProfit || risk.take_profit;
+      if (tp && typeof tp.value === 'number') {
+        setTakeProfitPips(tp.value);
+      }
+      const mhb = risk.maxHoldBars ?? risk.max_hold_bars;
+      if (typeof mhb === 'number') {
+        setMaxHoldBars(mhb);
+      }
+    }
+
+    // maxHoldBars at config top level as fallback
+    const topMhb = config.maxHoldBars ?? config.max_hold_bars;
+    if (typeof topMhb === 'number' && maxHoldBars === '') {
+      setMaxHoldBars(topMhb);
+    }
+  }, [strategyData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const mutation = useMutation({
     mutationFn: (params: BacktestParams) => runBacktest(strategyId, params),
@@ -88,12 +145,15 @@ export function BacktestForm({ strategyId, onComplete }: BacktestFormProps) {
     e.preventDefault();
 
     const positionSizing: BacktestParams['positionSizing'] = { type: sizingType };
-    if (sizingType === 'fixed_qty' || sizingType === 'fixed_dollar') {
+    if (sizingType === 'fixed' || sizingType === 'fixed_cash') {
       positionSizing.amount = sizingAmount;
     } else if (sizingType === 'percent_equity') {
       positionSizing.percent = sizingAmount;
-    } else if (sizingType === 'risk_based') {
+    } else if (sizingType === 'percent_risk') {
       positionSizing.percent = sizingAmount;
+      if (stopLossPips !== '') {
+        positionSizing.stopPips = stopLossPips;
+      }
     }
 
     const exitConfig: BacktestParams['exitConfig'] = {};
@@ -117,9 +177,9 @@ export function BacktestForm({ strategyId, onComplete }: BacktestFormProps) {
   }
 
   const sizingLabel =
-    sizingType === 'fixed_qty'
+    sizingType === 'fixed'
       ? 'Quantity'
-      : sizingType === 'fixed_dollar'
+      : sizingType === 'fixed_cash'
         ? 'Dollar Amount'
         : sizingType === 'percent_equity'
           ? '% of Equity'

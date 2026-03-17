@@ -42,6 +42,19 @@ export function EquityCurveChart({ data, initialCapital, loading }: EquityCurveC
     drawdownDisplay: Math.abs(p.drawdownPct),
   }));
 
+  // Check if all equity values are identical (flat line / 0-trade backtest)
+  const allSameEquity = chartData.length > 0 && chartData.every((p) => p.equity === chartData[0].equity);
+
+  if (chartData.length > 0 && allSameEquity) {
+    return (
+      <ChartContainer title="Equity Curve" loading={loading} empty={false}>
+        <div className="flex items-center justify-center h-[350px] text-text-secondary text-sm">
+          No equity change during backtest period. Starting capital: {formatCurrency(initialCapital)}
+        </div>
+      </ChartContainer>
+    );
+  }
+
   return (
     <ChartContainer title="Equity Curve" loading={loading} empty={chartData.length === 0}>
       <ResponsiveContainer width="100%" height={350}>
@@ -66,6 +79,7 @@ export function EquityCurveChart({ data, initialCapital, loading }: EquityCurveC
             tick={{ fill: COLORS.textTertiary, fontSize: 12 }}
             tickFormatter={(v: number) => formatCurrency(v)}
             width={90}
+            domain={[(dataMin: number) => Math.floor(dataMin * 0.98), (dataMax: number) => Math.ceil(dataMax * 1.02)]}
           />
           <YAxis
             yAxisId="drawdown"

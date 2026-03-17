@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-16 (TASK-041d complete)
+# Last updated: 2026-03-17 (TASK-042 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -912,3 +912,24 @@
     - updating existing strategy config works
     - nothing inside /studio modified
   completed_at: 2026-03-16
+
+- id: TASK-042
+  artifact: backtest and strategy builder bug fixes (8 fixes)
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-041d
+  acceptance:
+    - right-side indicator in conditions has period and source inputs
+    - condition with indicator-vs-indicator comparison saves correctly
+    - backtest with fixed quantity sizing produces trades
+    - all 4 position sizing types produce trades in backtest
+    - disable button works on enabled strategies
+    - delete functionality exists for draft strategies
+    - config tab loads without crash on all strategies
+    - backtest form pre-fills exit rules from strategy config
+    - portfolio metrics endpoint returns numbers not strings
+    - equity curve on 0-trade backtest shows flat line at initial capital
+    - no other pages crash or show errors
+    - nothing inside /studio modified
+  completed_at: 2026-03-17

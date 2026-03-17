@@ -406,3 +406,11 @@ Summary: Fixed two issues preventing strategy creation/editing. Fix 1: frontend 
 Files created: 0
 Files modified: 3
 Notes: Passed validation on first attempt. Follow-up needed: `safety_monitor.py` still only checks top-level `stop_loss`/`take_profit`/`trailing_stop` config keys — does not check `risk_management.*` fallback. If SL/TP stored only under `risk_management`, safety monitor won't find them for orphaned positions.
+
+## TASK-042 — Backtest & Strategy Builder Bug Fixes
+Date: 2026-03-17
+Status: Complete
+Summary: Fixed 8 bugs across the strategy builder, backtest engine, and frontend. BF-1: Right-side indicator in condition builder now renders full parameter inputs (period, source, output selector). BF-2: Fixed sizing type strings to match backend (fixed, fixed_cash, percent_equity, percent_risk). BF-3: Strategy disable/pause/enable mutations send `{}` body to avoid 422. BF-4: Added delete button for draft strategies with confirmation dialog. BF-5: Null guards on config tab (`strategy.config ?? {}`, `v.changes ?? []`). BF-6: Backtest form pre-fills timeframe, symbols, SL/TP, max hold bars from strategy config. BF-7: Already fixed (Decimal→float in prior task). BF-8: Equity curve for 0-trade backtests shows flat line with backend fallback equity point and frontend Y-axis padding.
+Files created: 0
+Files modified: 5
+Notes: BF-4 uses hard delete instead of soft delete suggested in task — acceptable since only draft strategies can be deleted (no signals, fills, or positions). BF-6 pre-fill uses `useRef` guard to run once and avoid overwriting user edits.

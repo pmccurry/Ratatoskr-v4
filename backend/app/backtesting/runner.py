@@ -104,6 +104,16 @@ class BacktestRunner:
                 # Record equity
                 state.record_equity(current_bar, bar_index)
 
+        # Ensure at least one equity point exists (covers 0-trade backtests)
+        if not state.equity_points and all_bars:
+            for sym_bars in all_bars.values():
+                if sym_bars:
+                    last_bar_dicts = self._bars_to_dicts(sym_bars)
+                    last_bar = last_bar_dicts[-1]
+                    state._trade_occurred = True  # Force recording
+                    state.record_equity(last_bar, len(last_bar_dicts) - 1)
+                    break
+
         # Close remaining positions at end of data
         if all_bars:
             # Get last bar from first symbol that has bars
