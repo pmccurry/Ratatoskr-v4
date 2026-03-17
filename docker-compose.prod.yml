@@ -20,6 +20,8 @@ services:
       dockerfile: Dockerfile.backend
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - ./strategies:/app/backend/strategies:ro
     depends_on:
       db:
         condition: service_healthy
