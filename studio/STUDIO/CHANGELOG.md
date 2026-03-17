@@ -414,3 +414,27 @@ Summary: Fixed 8 bugs across the strategy builder, backtest engine, and frontend
 Files created: 0
 Files modified: 5
 Notes: BF-4 uses hard delete instead of soft delete suggested in task — acceptable since only draft strategies can be deleted (no signals, fills, or positions). BF-6 pre-fill uses `useRef` guard to run once and avoid overwriting user edits.
+
+## TASK-043 — Strategy SDK + Python Strategy Runner
+Date: 2026-03-17
+Status: Complete
+Summary: Built a complete Python strategy SDK enabling code-based strategies alongside the existing config-driven system. New `strategy_sdk` module with Strategy base class (lifecycle hooks: on_bar, on_start, on_stop, on_fill), StrategySignal dataclass, pandas-based indicator helpers (SMA, EMA, RSI, ATR, Bollinger, MACD, highest, lowest, crosses_above/below), TimeUtils (ET timezone), PipUtils (JPY handling), auto-discovery registry, runner with signal pipeline integration, and 5 REST API endpoints. Example SMA Crossover strategy in `strategies/` folder. Backend discovers strategies on startup.
+Files created: 11
+Files modified: 2
+Notes: Market data stream hookup (calling runner.on_new_bar from bar processing pipeline) is deferred. Portfolio service stubs return defaults until wired. Strategy state is in-memory only (resets on restart). Uses zoneinfo (Python 3.12 stdlib) instead of pytz. Session factory pattern for signal creation matches existing alert engine pattern. Validator required one round of fixes for indicators API mismatch (DataFrame+source param) — resolved before PASS.
+
+## TASK-044 — Backtest Engine Integration for Python Strategies
+Date: 2026-03-17
+Status: Complete
+Summary: Extended the backtest engine to execute Python-based strategies alongside condition-based ones. New PythonBacktestRunner calls strategy lifecycle hooks (on_start/on_bar/on_stop), provides growing history DataFrame, per-signal SL/TP exit logic, state sync (positions/equity/cash), and parameter overrides. CLI tool for running backtests from command line (store_results=False to skip DB). Migration adds strategy_type and strategy_file columns to backtest_runs (strategy_id now nullable for Python strategies). Results stored in same tables, same metrics computation.
+Files created: 3
+Files modified: 5
+Notes: O(n²) DataFrame construction per bar acknowledged — acceptable for V1. CLI uses store_results=False to avoid FK constraint violations (no BacktestRun in DB). Existing detail endpoints return 404 for Python backtests due to NULL strategy_id ownership check — needs follow-up. Validator required one round of fixes for CLI crash on backtests with trades.
+
+## TASK-045 — London/NY Breakout Strategy
+Date: 2026-03-17
+Status: Complete
+Summary: Implemented the London/NY Breakout strategy using the Python Strategy SDK — the first real strategy built on the new framework. Detects London session range (3-4 AM ET), validates range size (15-50 pips), and enters on breakout during NY overlap (8 AM-12 PM ET) with momentum confirmation (60%+ candle body, correct direction). Dynamic SL/TP from range bounds with configurable risk:reward ratio (default 1.5:1). Quality scoring system (0-100) across 5 weighted factors. One-trade-per-day limit. GBP_USD variant as a subclass. 11 configurable parameters exposed via get_parameters().
+Files created: 1
+Files modified: 0
+Notes: Strategy works best with 5m bars (12 bars per range hour). With 1h bars, range window contains only 1 bar — less accurate range detection. Volume scoring gives default 15% credit since OANDA forex bars lack tick volume. float() conversions used throughout to handle both Decimal and float inputs from backtest runner.

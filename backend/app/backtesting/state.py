@@ -25,6 +25,10 @@ class BacktestTradeRecord:
     max_favorable: Decimal = Decimal("0")  # max favorable excursion
     max_adverse: Decimal = Decimal("0")    # max adverse excursion
 
+    # Per-signal exit levels (used by Python strategy backtests)
+    stop_loss: Decimal | None = None
+    take_profit: Decimal | None = None
+
     def update_excursion(self, bar: dict):
         """Track MFE/MAE based on bar high/low."""
         if self.side == "long":

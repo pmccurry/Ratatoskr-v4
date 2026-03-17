@@ -8,6 +8,18 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
+class PythonBacktestRequest(BaseModel):
+    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+
+    symbols: list[str] | None = None
+    timeframe: str | None = None
+    start_date: datetime
+    end_date: datetime
+    initial_capital: float = 100000
+    position_sizing: dict | None = None
+    parameter_overrides: dict | None = None
+
+
 class BacktestRequest(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
@@ -24,8 +36,10 @@ class BacktestRunResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, alias_generator=to_camel, populate_by_name=True)
 
     id: UUID
-    strategy_id: UUID
+    strategy_id: UUID | None = None
     status: str
+    strategy_type: str = "conditions"
+    strategy_file: str | None = None
     symbols: list
     timeframe: str
     start_date: datetime

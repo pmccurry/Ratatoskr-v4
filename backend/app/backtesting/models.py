@@ -14,10 +14,16 @@ from app.common.base_model import BaseModel
 class BacktestRun(BaseModel):
     __tablename__ = "backtest_runs"
 
-    strategy_id: Mapped[UUID] = mapped_column(
-        ForeignKey("strategies.id", ondelete="CASCADE"), nullable=False
+    strategy_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("strategies.id", ondelete="CASCADE"), nullable=True
     )
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    strategy_type: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default="conditions"
+    )  # "conditions" or "python"
+    strategy_file: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
+    )  # filename for python strategies
     strategy_config: Mapped[dict] = mapped_column(JSONB, nullable=False)
     symbols: Mapped[dict] = mapped_column(JSONB, nullable=False)
     timeframe: Mapped[str] = mapped_column(String(10), nullable=False)

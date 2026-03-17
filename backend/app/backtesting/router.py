@@ -167,13 +167,14 @@ async def get_backtest(
     if not run:
         raise HTTPException(status_code=404, detail="Backtest run not found")
 
-    # Verify ownership via strategy
-    result = await db.execute(
-        select(Strategy).where(Strategy.id == run.strategy_id)
-    )
-    strategy = result.scalar_one_or_none()
-    if not strategy or strategy.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Backtest run not found")
+    # Verify ownership via strategy (skip for Python backtests with no strategy_id)
+    if run.strategy_id is not None:
+        result = await db.execute(
+            select(Strategy).where(Strategy.id == run.strategy_id)
+        )
+        strategy = result.scalar_one_or_none()
+        if not strategy or strategy.user_id != current_user.id:
+            raise HTTPException(status_code=404, detail="Backtest run not found")
 
     return {
         "data": BacktestRunResponse.model_validate(run).model_dump(by_alias=True)
@@ -193,13 +194,14 @@ async def get_backtest_trades(
     if not run:
         raise HTTPException(status_code=404, detail="Backtest run not found")
 
-    # Verify ownership via strategy
-    result = await db.execute(
-        select(Strategy).where(Strategy.id == run.strategy_id)
-    )
-    strategy = result.scalar_one_or_none()
-    if not strategy or strategy.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Backtest run not found")
+    # Verify ownership via strategy (skip for Python backtests with no strategy_id)
+    if run.strategy_id is not None:
+        result = await db.execute(
+            select(Strategy).where(Strategy.id == run.strategy_id)
+        )
+        strategy = result.scalar_one_or_none()
+        if not strategy or strategy.user_id != current_user.id:
+            raise HTTPException(status_code=404, detail="Backtest run not found")
 
     trades, total = await _repo.get_trades(db, backtest_id, page=page, page_size=page_size)
     return {
@@ -225,13 +227,14 @@ async def get_equity_curve(
     if not run:
         raise HTTPException(status_code=404, detail="Backtest run not found")
 
-    # Verify ownership via strategy
-    result = await db.execute(
-        select(Strategy).where(Strategy.id == run.strategy_id)
-    )
-    strategy = result.scalar_one_or_none()
-    if not strategy or strategy.user_id != current_user.id:
-        raise HTTPException(status_code=404, detail="Backtest run not found")
+    # Verify ownership via strategy (skip for Python backtests with no strategy_id)
+    if run.strategy_id is not None:
+        result = await db.execute(
+            select(Strategy).where(Strategy.id == run.strategy_id)
+        )
+        strategy = result.scalar_one_or_none()
+        if not strategy or strategy.user_id != current_user.id:
+            raise HTTPException(status_code=404, detail="Backtest run not found")
 
     points = await _repo.get_equity_curve(db, backtest_id, sample=sample)
     return {

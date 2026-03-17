@@ -1,5 +1,5 @@
 # STATUS_BOARD
-# Last updated: 2026-03-17 (TASK-042 complete)
+# Last updated: 2026-03-17 (TASK-045 complete)
 
 # ============================================================
 # STUDIO BOOTSTRAP
@@ -931,5 +931,86 @@
     - portfolio metrics endpoint returns numbers not strings
     - equity curve on 0-trade backtest shows flat line at initial capital
     - no other pages crash or show errors
+    - nothing inside /studio modified
+  completed_at: 2026-03-17
+
+- id: TASK-043
+  artifact: Strategy SDK and Python strategy runner
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-042
+  acceptance:
+    - Strategy base class with on_bar, on_start, on_stop, on_fill lifecycle hooks
+    - StrategySignal dataclass with all signal pipeline fields
+    - Indicators class with SMA, EMA, RSI, ATR, Bollinger, MACD, highest, lowest, crosses_above/below
+    - TimeUtils with hour_et, is_between_hours, date_et, weekday
+    - PipUtils with to_pips, from_pips, pip_value (JPY handling), candle_body_pct
+    - Registry discovers Python strategy files from strategies/ folder on startup
+    - Strategy classes with name set are auto-registered
+    - GET /api/v1/python-strategies returns discovered strategies
+    - POST /api/v1/python-strategies/{name}/start and /stop work
+    - Runner on_new_bar calls strategy.on_bar for matching symbols
+    - Signals from Python strategies submitted to existing signal service
+    - Example SMA Crossover strategy exists and is discoverable
+    - strategies/README.md documents the SDK
+    - Backend startup logs discovered strategy count
+    - Existing condition-based strategies not affected
+    - pandas>=2.0.0 added to dependencies
+    - nothing inside /studio modified
+  completed_at: 2026-03-17
+
+- id: TASK-044
+  artifact: backtest engine integration for Python strategies
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-043
+  acceptance:
+    - POST /api/v1/python-strategies/{name}/backtest endpoint exists and returns results
+    - Python strategy on_start called before bar loop
+    - Python strategy on_bar called for each bar with correct symbol, bar dict, and history DataFrame
+    - Python strategy on_stop called after bar loop
+    - history DataFrame grows with each bar
+    - signals from on_bar processed through fill simulation
+    - per-signal SL/TP used for exit checks
+    - signal without quantity falls back to backtest position sizing config
+    - signal with quantity uses it directly
+    - strategy positions, equity, cash updated between bars
+    - has_position and position_count return accurate values during backtest
+    - parameter overrides apply to strategy instance per backtest run
+    - invalid parameter overrides return 400 error
+    - results stored in same tables as condition-based backtests
+    - existing condition-based backtest path unchanged
+    - backtest_runs table has strategy_type field
+    - example SMA Crossover backtest produces trades and metrics
+    - CLI command runs a backtest and prints results
+    - no frontend code modified
+    - nothing inside /studio modified
+  completed_at: 2026-03-17
+
+- id: TASK-045
+  artifact: London/NY Breakout strategy
+  owner: supervisor
+  status: complete
+  depends_on:
+    - TASK-044
+  acceptance:
+    - strategies/london_breakout.py exists and is auto-discovered on startup
+    - all configurable parameters exposed via get_parameters (11 params)
+    - range detection accumulates high/low during range window
+    - range validation rejects ranges outside min/max pips
+    - daily state resets at midnight ET
+    - breakout detected when close exceeds range + buffer with momentum
+    - momentum confirmation requires body >= min_body_pct AND correct candle direction
+    - stop loss at opposite range bound + stop_buffer_pips
+    - take profit at entry + risk x risk_reward ratio
+    - one trade per day limit enforced
+    - no signals generated outside entry window
+    - quality scoring system produces scores 0-100 (5 weighted factors)
+    - signal metadata includes range_high, range_low, range_pips, risk_pips, score
+    - GBP_USD variant exists as subclass
+    - backtest via API produces trades against EUR_USD data
+    - no existing files modified
     - nothing inside /studio modified
   completed_at: 2026-03-17

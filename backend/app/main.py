@@ -20,6 +20,7 @@ from app.risk.router import router as risk_router
 from app.signals.router import router as signals_router
 from app.strategies.router import router as strategies_router
 from app.backtesting.router import router as backtesting_router, strategy_backtest_router
+from app.strategy_sdk.router import router as python_strategy_router
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,14 @@ async def lifespan(app: FastAPI):
         await start_paper_trading()
     except Exception as e:
         logger.error("Paper trading module startup failed (non-fatal): %s", e)
+
+    # Discover Python strategies (non-fatal)
+    try:
+        from app.strategy_sdk.registry import discover_strategies
+        strategies_found = discover_strategies()
+        logger.info("Found %d Python strategies", len(strategies_found))
+    except Exception as e:
+        logger.error("Python strategy discovery failed (non-fatal): %s", e)
 
     # Start portfolio module (non-fatal — must start after paper trading)
     try:
@@ -226,6 +235,7 @@ app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(observability_router, prefix="/api/v1")
 app.include_router(backtesting_router, prefix="/api/v1")
 app.include_router(strategy_backtest_router, prefix="/api/v1")
+app.include_router(python_strategy_router, prefix="/api/v1")
 
 
 @app.get("/api/v1/health")

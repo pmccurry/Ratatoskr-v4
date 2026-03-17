@@ -146,4 +146,4 @@ are documented as deferred enhancements in the relevant specs.
 
 ## Last Updated
 
-2026-03-17 (TASK-042 complete — 8 bug fixes across strategy builder, backtest engine, and frontend. Right-side indicator params in condition builder, fixed sizing type strings, strategy disable/delete, config tab null guards, backtest form pre-fill from strategy config, equity curve for 0-trade backtests.)
+2026-03-17 (TASK-045 complete — London/NY Breakout strategy implemented using Python SDK. Session range detection, breakout with momentum confirmation, dynamic SL/TP from range bounds, quality scoring, one-trade-per-day limit. GBP_USD variant as subclass. First real strategy using the SDK.)
